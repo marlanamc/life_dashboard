@@ -67,6 +67,16 @@ npm run build
 
 The built files will be in the `dist/` directory.
 
+### Install as an App
+
+The dashboard is now a Progressive Web App. After starting the dev server or opening the production build:
+
+1. Visit the site in Chrome, Edge, or another PWA-capable browser.
+2. Open the browser menu and choose **Install Life Dashboard** (or the install icon in the address bar).
+3. Launch the installed app from your dock/launcher for a distraction-free, standalone experience.
+
+Offline support keeps the core interface and theme assets available even when you lose connectivity.
+
 ## Project Structure
 
 ```
@@ -80,6 +90,11 @@ src/
 ├── projects-table.js      # Project management table
 ├── top-three.js          # Daily focus priorities
 └── styles.css            # Global styles and theming
+
+public/
+├── manifest.webmanifest   # PWA manifest describing icons and install behavior
+├── service-worker.js      # Offline caching and install prompt support
+└── icons/                 # Generated app icons for desktop/mobile launchers
 ```
 
 ## Key Components

@@ -49,6 +49,10 @@ coverage/
 *.bmp
 *.tiff
 
+# Allow bundled PWA icons
+!public/icons/
+!public/icons/*.png
+
 # Debug files
 debug-*.js
 test-*.js
