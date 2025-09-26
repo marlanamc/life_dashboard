@@ -1,0 +1,24 @@
+{
+  "name": "life-dashboard",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --fix",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "autoprefixer": "^10.4.18",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-html": "^7.1.0",
+    "playwright": "^1.55.1",
+    "postcss": "^8.4.35",
+    "prettier": "^3.2.5",
+    "vite": "^5.0.0"
+  }
+}

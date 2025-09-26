@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Life Dashboard - ADHD-Friendly Home Base</title>
+    <link rel="stylesheet" href="src/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Settings Menu -->
+    <div class="settings-menu" id="settings-menu">
+      <button class="settings-toggle" id="settings-toggle" aria-haspopup="true" aria-expanded="false">
+        <span class="settings-icon">⚙️</span>
+      </button>
+
+      <div class="settings-dropdown" id="settings-dropdown" role="dialog" aria-label="Dashboard control center">
+        <div class="settings-header">
+          <div class="settings-title">
+            <h4>Control Center</h4>
+            <p>Fine-tune how your dashboard supports you</p>
+          </div>
+          <button class="settings-close" id="settings-close" aria-label="Close settings">✕</button>
+        </div>
+
+        <div class="settings-section">
+          <span class="section-label">Modes</span>
+          <div class="settings-group">
+            <button class="settings-item" id="emergency-toggle">
+              <span class="item-icon">🚨</span>
+              <div class="item-content">
+                <span class="item-text">Emergency Mode</span>
+                <span class="item-description">Hide everything except the essentials</span>
+              </div>
+              <span class="item-state" data-state="emergency">Off</span>
+            </button>
+
+            <button class="settings-item" id="focus-toggle">
+              <span class="item-icon">🎯</span>
+              <div class="item-content">
+                <span class="item-text">Focus Mode</span>
+                <span class="item-description">Minimize distractions for deep work</span>
+              </div>
+              <span class="item-state" data-state="focus">Off</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <span class="section-label">Theme</span>
+          <div class="settings-group">
+            <button class="settings-item" id="auto-theme-toggle">
+              <span class="item-icon">🪄</span>
+              <div class="item-content">
+                <span class="item-text">Auto Theme</span>
+                <span class="item-description">Follow the natural day → evening rhythm</span>
+              </div>
+              <span class="item-state" data-state="auto-theme">On</span>
+            </button>
+
+            <button class="settings-item" id="day-mode-toggle">
+              <span class="item-icon">☀️</span>
+              <div class="item-content">
+                <span class="item-text">Daylight Boost</span>
+                <span class="item-description">Brighten the interface when energy dips</span>
+              </div>
+              <span class="item-state" data-state="day-mode">Off</span>
+            </button>
+
+            <div class="settings-subheading">Manual theme</div>
+            <div class="settings-pill-group" role="group" aria-label="Choose dashboard theme">
+              <button class="theme-pill" data-theme-target="day">☀️ Day</button>
+              <button class="theme-pill" data-theme-target="evening">🌙 Evening</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <span class="section-label">Integrations</span>
+          <div id="ticktick-integration-container"></div>
+        </div>
+
+        <div class="settings-footer">
+          <p class="settings-hint">Pro tip: Press ⌘/Ctrl + E anywhere to jump into Emergency Mode.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADHD-Optimized Dashboard -->
+    <div class="dashboard-container">
+
+      <!-- Top Section: Welcome & Time Context -->
+      <div class="welcome-section">
+        <div class="card card--primary welcome-card">
+          <div class="welcome-content">
+            <div class="welcome-header">
+              <div class="theme-toggle-slot" id="theme-toggle-slot" aria-label="Toggle theme"></div>
+              <div class="welcome-text" id="greeting-container">
+                <!-- Dynamic greeting will be inserted here -->
+              </div>
+            </div>
+
+            <div class="welcome-panels">
+              <div class="welcome-tile welcome-panel--time">
+                <div class="time-context">
+                  <div class="current-time" id="current-time"></div>
+                  <div class="current-date" id="current-date"></div>
+                </div>
+              </div>
+              <div class="welcome-tile welcome-calendar welcome-calendar--month">
+                <div id="monthly-calendar-compact"></div>
+              </div>
+              <div class="welcome-tile welcome-calendar welcome-calendar--week">
+                <div id="weekly-calendar-container"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Main Dashboard Grid -->
+      <div class="main-dashboard">
+
+        <!-- Energy Section -->
+        <div class="energy-column">
+          <div id="enough-capacity-container"></div>
+        </div>
+
+        <!-- Brain Space Section -->
+        <div class="brain-column">
+          <div class="card card--nature brain-space">
+            <div class="card__header">
+              <h3 class="card__title">
+                <span class="emoji">🧠</span>
+                Brain Space
+              </h3>
+              <div class="brain-actions">
+                <button class="btn btn--small voice-capture-btn" title="Voice capture">🎤</button>
+                <button class="btn btn--small quick-note-btn" title="Quick note">📝</button>
+              </div>
+            </div>
+            <div class="card__content" id="brain-dump-plus-container"></div>
+          </div>
+        </div>
+
+        <!-- Projects Section -->
+        <div class="projects-column">
+          <div class="card card--accent projects-hub">
+            <div class="card__header">
+              <h3 class="card__title">
+                <span class="emoji">🎯</span>
+                Project Library
+              </h3>
+              <button class="btn btn--small add-project-btn">+ New</button>
+            </div>
+            <div class="card__content" id="projects-table-container"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ADHD Support Widgets (Floating) -->
+    <div class="adhd-widgets">
+      <!-- Stimming Corner -->
+      <div class="stimming-corner" id="stimming-corner" style="display: none;">
+        <div class="fidget-widgets">
+          <div class="stress-ball" id="stress-ball">●</div>
+          <div class="spinner" id="spinner">⚡</div>
+          <div class="breathing-circle" id="breathing-circle"></div>
+        </div>
+      </div>
+
+      <!-- Micro-celebration overlay -->
+      <div class="celebration-overlay" id="celebration-overlay"></div>
+
+      <!-- Working memory notes -->
+      <div class="floating-notes" id="floating-notes"></div>
+    </div>
+
+    <!-- Load the modular JavaScript -->
+    <script type="module" src="src/life-dashboard.js"></script>
+  </body>
+</html>
