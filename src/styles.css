@@ -2547,9 +2547,9 @@ body {
 }
 
 .compact-calendar__day.is-today {
-  background: #3b82f6;
+  background: var(--brain-card-accent);
   color: #ffffff;
-  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
 }
 
 .compact-week {
@@ -3297,15 +3297,18 @@ body[data-theme="evening"] .brain-space .btn--success:hover {
 }
 
 .calendar-day.today {
-  background: var(--color-primary);
-  color: white;
+  background: var(--brain-card-accent);
+  color: #ffffff;
   font-weight: var(--font-bold);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  border: none;
 }
 
 .calendar-day.selected {
-  background: var(--color-accent);
-  color: white;
+  background: linear-gradient(135deg, var(--brain-card-accent), rgba(255, 255, 255, 0.2));
+  color: #ffffff;
   font-weight: var(--font-bold);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
 .calendar-day.empty {
