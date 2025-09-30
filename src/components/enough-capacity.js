@@ -26,8 +26,11 @@ export class EnoughCapacity {
 
   render() {
     const capacityUsed = this.getCapacityUsed();
+    const completedCapacity = this.getCompletedCapacity();
     const normalizedUsed = Math.min(100, Math.max(0, capacityUsed));
+    const normalizedCompleted = Math.min(100, Math.max(0, completedCapacity));
     const displayUsed = Math.round(normalizedUsed);
+    const displayCompleted = Math.round(normalizedCompleted);
     const displayLeft = Math.max(0, 100 - displayUsed);
     const isOverCapacity = normalizedUsed > 100;
     const modalClass = this.isModalOpen ? 'is-open' : '';
@@ -45,6 +48,17 @@ export class EnoughCapacity {
           </div>
           </div>
         <div class="card__content">
+          <!-- Completion Progress Indicator -->
+          <div class="completion-progress" style="margin-bottom: var(--spacing-md);">
+            <div class="completion-bar">
+              <div class="completion-fill" style="width: ${displayCompleted}%;"></div>
+            </div>
+            <div class="completion-text">
+              <span class="completion-label">Completed: ${displayCompleted}%</span>
+              <span class="completion-count">(${this.tasks.filter(t => t.completed).length}/${this.tasks.length} tasks)</span>
+            </div>
+          </div>
+
           <div class="organic-capacity">
             <div class="capacity-left">
               <!-- Central Flower/Balance Visual -->
@@ -71,7 +85,7 @@ export class EnoughCapacity {
 
                 <!-- Progress rings - Mind, Body, Energy -->
                 <g transform="translate(120, 120)">
-                  <!-- Mind Ring (outer) -->
+                  <!-- Mind Ring (outer) - Total capacity -->
                   <circle
                     r="85"
                     fill="none"
@@ -86,10 +100,31 @@ export class EnoughCapacity {
                     stroke-width="12"
                     stroke-linecap="round"
                     stroke-dasharray="534.07"
-                    stroke-dashoffset="${534.07 - (534.07 * (normalizedUsed / 100))}"
+                    stroke-dashoffset="${534.07 - 534.07 * (normalizedUsed / 100)}"
                     transform="rotate(-90)"
                     class="progress-ring mind-ring"
                     filter="url(#glow)"
+                  />
+
+                  <!-- Completed capacity ring (inner, brighter) -->
+                  <circle
+                    r="70"
+                    fill="none"
+                    stroke="rgba(34, 197, 94, 0.15)"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                  <circle
+                    r="70"
+                    fill="none"
+                    stroke="#22c55e"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    stroke-dasharray="439.82"
+                    stroke-dashoffset="${439.82 - 439.82 * (completedCapacity / 100)}"
+                    transform="rotate(-90)"
+                    class="progress-ring completed-ring"
+                    opacity="0.8"
                   />
 
                   <!-- Body Ring (middle) -->
@@ -107,7 +142,7 @@ export class EnoughCapacity {
                     stroke-width="10"
                     stroke-linecap="round"
                     stroke-dasharray="408.4"
-                    stroke-dashoffset="${408.4 - (408.4 * (normalizedUsed / 100))}"
+                    stroke-dashoffset="${408.4 - 408.4 * (normalizedUsed / 100)}"
                     transform="rotate(-90)"
                     class="progress-ring body-ring"
                     filter="url(#glow)"
@@ -128,7 +163,7 @@ export class EnoughCapacity {
                     stroke-width="8"
                     stroke-linecap="round"
                     stroke-dasharray="282.7"
-                    stroke-dashoffset="${282.7 - (282.7 * (normalizedUsed / 100))}"
+                    stroke-dashoffset="${282.7 - 282.7 * (normalizedUsed / 100)}"
                     transform="rotate(-90)"
                     class="progress-ring energy-ring"
                     filter="url(#glow)"
@@ -187,8 +222,31 @@ export class EnoughCapacity {
             </div>
 
             <div class="capacity-right">
-              <div class="capacity-breakdown">
-                ${this.getCapacityBreakdown()}
+              <div class="capacity-tasks">
+                <div class="capacity-tasks-header">
+                  <h4 class="tasks-title">Tasks (${this.tasks.length})</h4>
+                  <button class="btn btn--small" id="add-task-btn">+ Add</button>
+                </div>
+                <div class="tasks-main-list">
+                  ${this.tasks.length === 0
+                    ? `<div class="no-tasks-main">Add tasks to track your energy</div>`
+                    : this.tasks.map((task, index) => `
+                      <div class="main-task-item ${task.completed ? 'completed' : ''}" data-index="${index}">
+                        <label class="main-task-checkbox" for="main-task-${index}">
+                          <input type="checkbox" id="main-task-${index}" ${task.completed ? 'checked' : ''}>
+                          <span class="main-checkbox-visual"></span>
+                        </label>
+                        <div class="main-task-content">
+                          <div class="main-task-text ${task.completed ? 'completed' : ''}">${task.text}</div>
+                          <div class="main-task-meta">
+                            <span class="main-task-duration">${task.duration}min</span>
+                            ${task.energyType ? `<span class="main-task-energy">${this.getEnergyTypeEmoji(task.energyType)}</span>` : ''}
+                          </div>
+                        </div>
+                      </div>
+                    `).join('')
+                  }
+                </div>
               </div>
             </div>
           </div>
@@ -226,23 +284,35 @@ export class EnoughCapacity {
               <button class="btn btn--small" id="add-task-btn">+ Add task</button>
             </div>
             <section class="task-list modal-block" aria-live="polite">
-              ${this.tasks.length === 0 ? `
+              ${
+                this.tasks.length === 0
+                  ? `
                 <div class="no-tasks">It's empty in here. Add something small to get rolling.</div>
-              ` : `
-                ${this.tasks.map((task, index) => `
-                  <div class="task-item" data-index="${index}">
+              `
+                  : `
+                ${this.tasks
+                  .map(
+                    (task, index) => `
+                  <div class="task-item${task.fromProject ? ' task-item--project' : ''}" data-index="${index}">
                     <label class="task-checkbox" for="task-${index}">
                       <input type="checkbox" id="task-${index}" ${task.completed ? 'checked' : ''}>
                       <span class="checkbox-visual"></span>
                     </label>
                     <div class="task-content">
                       <div class="task-text ${task.completed ? 'completed' : ''}">${task.text}</div>
-                      <div class="task-duration">${task.duration} min</div>
+                      <div class="task-meta">
+                        <span class="task-duration">${task.duration} min</span>
+                        ${task.energyType ? `<span class="task-energy-type">${this.getEnergyTypeEmoji(task.energyType)}</span>` : ''}
+                        ${task.fromProject ? `<span class="project-indicator" title="From project: ${task.projectName}">📋</span>` : ''}
+                      </div>
                     </div>
                     <button class="task-delete" data-index="${index}" aria-label="Delete task">×</button>
                   </div>
-                `).join('')}
-              `}
+                `
+                  )
+                  .join('')}
+              `
+              }
             </section>
           </section>
         </div>
@@ -334,6 +404,148 @@ export class EnoughCapacity {
           height: 100%;
           display: flex;
           flex-direction: column;
+        }
+
+        /* Main Task List Styles */
+        .capacity-tasks {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .capacity-tasks-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: var(--spacing-sm);
+        }
+
+        .tasks-title {
+          margin: 0;
+          font-size: var(--text-sm);
+          font-weight: var(--font-semibold);
+          color: var(--color-text-primary);
+        }
+
+        .tasks-main-list {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: var(--spacing-xs);
+          overflow-y: auto;
+          max-height: 280px;
+        }
+
+        .no-tasks-main {
+          text-align: center;
+          color: var(--color-text-secondary);
+          font-size: var(--text-xs);
+          padding: var(--spacing-md);
+          border: 1px dashed rgba(255, 255, 255, 0.3);
+          border-radius: var(--radius-sm);
+          margin-top: var(--spacing-sm);
+        }
+
+        .main-task-item {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-xs);
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: var(--radius-sm);
+          padding: var(--spacing-xs) var(--spacing-sm);
+          transition: all 0.2s ease;
+          cursor: pointer;
+        }
+
+        .main-task-item:hover {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-task-item.completed {
+          opacity: 0.7;
+        }
+
+        .main-task-checkbox {
+          position: relative;
+          width: 16px;
+          height: 16px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .main-task-checkbox input {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          cursor: pointer;
+        }
+
+        .main-checkbox-visual {
+          width: 16px;
+          height: 16px;
+          border-radius: 3px;
+          border: 1.5px solid rgba(255, 255, 255, 0.4);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          color: white;
+          transition: all 0.2s ease;
+          background: transparent;
+        }
+
+        .main-task-checkbox input:checked + .main-checkbox-visual {
+          background: rgba(34, 197, 94, 0.9);
+          border-color: rgba(34, 197, 94, 1);
+          box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3);
+        }
+
+        .main-task-checkbox input:checked + .main-checkbox-visual::after {
+          content: '✓';
+          font-size: 9px;
+          font-weight: bold;
+        }
+
+        .main-task-content {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .main-task-text {
+          font-size: var(--text-xs);
+          font-weight: var(--font-medium);
+          color: var(--color-text-primary);
+          line-height: 1.3;
+          margin-bottom: 2px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .main-task-text.completed {
+          text-decoration: line-through;
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .main-task-meta {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-xs);
+        }
+
+        .main-task-duration {
+          font-size: 9px;
+          color: rgba(255, 255, 255, 0.7);
+          font-weight: var(--font-medium);
+        }
+
+        .main-task-energy {
+          font-size: 10px;
+          opacity: 0.8;
         }
 
         .breakdown-details {
@@ -791,6 +1003,39 @@ export class EnoughCapacity {
           border-radius: 50%;
         }
 
+        .completion-progress {
+          margin-bottom: var(--spacing-md);
+        }
+
+        .completion-bar {
+          width: 100%;
+          height: 6px;
+          background: rgba(34, 197, 94, 0.1);
+          border-radius: 3px;
+          overflow: hidden;
+          margin-bottom: var(--spacing-xs);
+        }
+
+        .completion-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+          border-radius: 3px;
+          transition: width 0.3s ease;
+        }
+
+        .completion-text {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: var(--text-xs);
+          color: var(--color-text-secondary);
+        }
+
+        .completion-label {
+          font-weight: var(--font-semibold);
+          color: var(--color-text-primary);
+        }
+
         .task-item {
           display: grid;
           grid-template-columns: auto 1fr auto;
@@ -800,6 +1045,17 @@ export class EnoughCapacity {
           padding: var(--spacing-sm) var(--spacing-md);
           border-radius: var(--radius-lg);
           box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        }
+
+        .task-item--project {
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(147, 197, 253, 0.08));
+          border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .project-indicator {
+          font-size: 12px;
+          opacity: 0.8;
+          margin-left: var(--spacing-xs);
         }
 
         .task-checkbox {
@@ -850,9 +1106,20 @@ export class EnoughCapacity {
           color: rgba(30, 34, 66, 0.5);
         }
 
+        .task-meta {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
         .task-duration {
           font-size: 0.75rem;
           color: rgba(30, 34, 66, 0.5);
+        }
+
+        .task-energy-type {
+          font-size: 0.75rem;
+          opacity: 0.7;
         }
 
         .task-delete {
@@ -903,7 +1170,7 @@ export class EnoughCapacity {
     // Calculate capacity based on all tasks (both completed and pending)
     let totalCapacity = 0; // Remove arbitrary base capacity
 
-    this.tasks.forEach(task => {
+    this.tasks.forEach((task) => {
       if (task.fromCalculator && task.calculatedCapacity) {
         // Use ADHD-aware calculated capacity
         totalCapacity += task.calculatedCapacity;
@@ -921,6 +1188,24 @@ export class EnoughCapacity {
     const timeEnergyDepletion = this.getTimeBasedEnergyDepletion();
 
     return Math.min(100, totalCapacity + timeEnergyDepletion);
+  }
+
+  getCompletedCapacity() {
+    // Calculate capacity for completed tasks only
+    let completedCapacity = 0;
+
+    this.tasks.filter(task => task.completed).forEach((task) => {
+      if (task.fromCalculator && task.calculatedCapacity) {
+        completedCapacity += task.calculatedCapacity;
+      } else if (task.fromQuickAdd && task.adjustedCapacity) {
+        completedCapacity += task.adjustedCapacity;
+      } else {
+        const energyWeight = Math.min(task.duration / 3, 25);
+        completedCapacity += energyWeight;
+      }
+    });
+
+    return Math.min(100, completedCapacity);
   }
 
   /**
@@ -977,7 +1262,7 @@ export class EnoughCapacity {
     const hourLabel = this.formatHourLabel(currentHour);
 
     let taskCapacity = 0;
-    let taskDetails = [];
+    const taskDetails = [];
 
     this.tasks.forEach((task, index) => {
       const energyWeight = Math.min(task.duration / 3, 25);
@@ -988,32 +1273,40 @@ export class EnoughCapacity {
         duration: task.duration,
         energy: Math.round(energyWeight),
         completed: task.completed,
-        index: index
+        index: index,
       });
     });
 
     const totalCapacity = Math.min(100, taskCapacity + timeEnergyDepletion);
-    
+
     return `
       <div class="breakdown-details">
-        ${timeEnergyDepletion > 0 ? `
+        ${
+          timeEnergyDepletion > 0
+            ? `
           <div class="breakdown-item">
             <span class="breakdown-label">Time energy depletion (${hourLabel})</span>
             <span class="breakdown-value">${timeEnergyDepletion}%</span>
           </div>
-        ` : `
+        `
+            : `
           <div class="breakdown-item">
             <span class="breakdown-label">Morning fresh energy ✨ (${hourLabel})</span>
             <span class="breakdown-value">0%</span>
           </div>
-        `}
-        ${taskDetails.length > 0 ? `
+        `
+        }
+        ${
+          taskDetails.length > 0
+            ? `
           <div class="breakdown-item">
             <span class="breakdown-label">Tasks (${this.tasks.length})</span>
             <span class="breakdown-value">${Math.round(taskCapacity)}%</span>
           </div>
           <div class="task-cards">
-            ${taskDetails.map(task => `
+            ${taskDetails
+              .map(
+                (task) => `
               <div class="task-card ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
                 <div class="task-card-content">
                   <div class="task-info">
@@ -1029,14 +1322,18 @@ export class EnoughCapacity {
                   </svg>
                 </button>
               </div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
-        ` : `
+        `
+            : `
           <div class="breakdown-item">
             <span class="breakdown-label">No tasks planned</span>
             <span class="breakdown-value">0%</span>
           </div>
-        `}
+        `
+        }
         <div class="breakdown-total">
           <span class="breakdown-label">Total used</span>
           <span class="breakdown-value">${Math.round(totalCapacity)}%</span>
@@ -1056,7 +1353,7 @@ export class EnoughCapacity {
       r: 139,
       g: 124,
       b: 248,
-      a: 1
+      a: 1,
     };
 
     const themeRoot = document.querySelector('.welcome-panel--time');
@@ -1082,7 +1379,11 @@ export class EnoughCapacity {
   }
 
   observeThemeChanges() {
-    if (this.themeObserver || typeof MutationObserver === 'undefined' || typeof window === 'undefined') {
+    if (
+      this.themeObserver ||
+      typeof MutationObserver === 'undefined' ||
+      typeof window === 'undefined'
+    ) {
       return;
     }
 
@@ -1128,7 +1429,7 @@ export class EnoughCapacity {
         r: Number(match[1]),
         g: Number(match[2]),
         b: Number(match[3]),
-        a: match[4] !== undefined ? Number(match[4]) : 1
+        a: match[4] !== undefined ? Number(match[4]) : 1,
       };
     }
 
@@ -1136,8 +1437,8 @@ export class EnoughCapacity {
   }
 
   toRgba(r, g, b, a = 1) {
-    const clamp = value => Math.max(0, Math.min(255, Math.round(value)));
-    const clampAlpha = alpha => Math.max(0, Math.min(1, Number(alpha)));
+    const clamp = (value) => Math.max(0, Math.min(255, Math.round(value)));
+    const clampAlpha = (alpha) => Math.max(0, Math.min(1, Number(alpha)));
     return `rgba(${clamp(r)}, ${clamp(g)}, ${clamp(b)}, ${clampAlpha(a)})`;
   }
 
@@ -1148,7 +1449,7 @@ export class EnoughCapacity {
       { task: 'Laundry', duration: 15, color: '#a5f3fc' },
       { task: 'Quick Call', duration: 15, color: '#c7d2fe' },
       { task: 'Creative Time', duration: 30, color: '#fbcfe8' },
-      { task: 'Deep Focus', duration: 40, color: '#ddd6fe' }
+      { task: 'Deep Focus', duration: 40, color: '#ddd6fe' },
     ];
   }
 
@@ -1208,12 +1509,15 @@ export class EnoughCapacity {
     });
 
     this.container.addEventListener('change', (e) => {
-      if (e.target.matches('.task-item input[type="checkbox"], .task-pill input[type="checkbox"]')) {
+      if (
+        e.target.matches('.task-item input[type="checkbox"], .task-pill input[type="checkbox"], .main-task-checkbox input[type="checkbox"]')
+      ) {
         const dataIndex = e.target.getAttribute('data-index');
         let index = dataIndex ? parseInt(dataIndex) : NaN;
         if (Number.isNaN(index)) {
-          const idPart = e.target.id.split('-')[1];
-          index = parseInt(idPart);
+          const idPart = e.target.id.split('-');
+          // Handle both "task-X" and "main-task-X" formats
+          index = parseInt(idPart[idPart.length - 1]);
         }
         if (!Number.isNaN(index)) {
           this.toggleTaskCompletion(index);
@@ -1262,8 +1566,7 @@ export class EnoughCapacity {
 
     // Event handlers
     modal.addEventListener('click', (e) => {
-      if (e.target.classList.contains('modal-backdrop') ||
-          e.target.dataset.action === 'close') {
+      if (e.target.classList.contains('modal-backdrop') || e.target.dataset.action === 'close') {
         document.body.removeChild(modal);
         return;
       }
@@ -1301,7 +1604,17 @@ export class EnoughCapacity {
             <label for="quick-duration">Duration (minutes):</label>
             <input type="number" id="quick-duration" value="15" min="1" max="480" class="quick-input">
 
-            <label for="energy-level">Current mental energy:</label>
+            <label for="energy-type">Energy type:</label>
+            <select id="energy-type" class="quick-input">
+              <option value="mental" selected>🧠 Mental - Thinking, planning, problem-solving</option>
+              <option value="physical">💪 Physical - Moving, exercising, manual work</option>
+              <option value="social">👥 Social - Interacting with people, meetings</option>
+              <option value="creative">🎨 Creative - Designing, writing, artistic work</option>
+              <option value="emotional">❤️ Emotional - Processing feelings, relationships</option>
+              <option value="administrative">📋 Administrative - Organizing, filing, routine tasks</option>
+            </select>
+
+            <label for="energy-level">Current energy level:</label>
             <select id="energy-level" class="quick-input">
               <option value="1">🔋 High - I'm feeling sharp and focused</option>
               <option value="1.5" selected>⚡ Medium - I'm doing okay, typical energy</option>
@@ -1342,61 +1655,211 @@ export class EnoughCapacity {
 
   getTaskPresets() {
     return {
-      'morning': {
+      morning: {
         name: 'Morning Routine',
         tasks: [
-          { name: 'Make Breakfast', duration: 45, icon: '🍳', note: 'Including decisions, prep, cooking, eating, cleanup' },
-          { name: 'Take Shower', duration: 35, icon: '🚿', note: 'Including gathering supplies, actual shower, post-shower routine' },
-          { name: 'Get Dressed', duration: 25, icon: '👔', note: 'Including outfit decisions, finding items, weather check' },
-          { name: 'Morning Meds', duration: 15, icon: '💊', note: 'Including remembering, finding, taking, tracking' },
-          { name: 'Check Weather', duration: 10, icon: '🌤️', note: 'Plus outfit adjustments if needed' },
-          { name: 'Pack Bag/Lunch', duration: 20, icon: '🎒', note: 'Including finding items, decision-making, double-checking' }
-        ]
+          {
+            name: 'Make Breakfast',
+            duration: 45,
+            icon: '🍳',
+            note: 'Including decisions, prep, cooking, eating, cleanup',
+          },
+          {
+            name: 'Take Shower',
+            duration: 35,
+            icon: '🚿',
+            note: 'Including gathering supplies, actual shower, post-shower routine',
+          },
+          {
+            name: 'Get Dressed',
+            duration: 25,
+            icon: '👔',
+            note: 'Including outfit decisions, finding items, weather check',
+          },
+          {
+            name: 'Morning Meds',
+            duration: 15,
+            icon: '💊',
+            note: 'Including remembering, finding, taking, tracking',
+          },
+          {
+            name: 'Check Weather',
+            duration: 10,
+            icon: '🌤️',
+            note: 'Plus outfit adjustments if needed',
+          },
+          {
+            name: 'Pack Bag/Lunch',
+            duration: 20,
+            icon: '🎒',
+            note: 'Including finding items, decision-making, double-checking',
+          },
+        ],
       },
-      'communication': {
+      communication: {
         name: 'Communication & Admin',
         tasks: [
-          { name: 'Check Emails', duration: 30, icon: '📧', note: 'Including reading, processing, responding, filing' },
-          { name: 'Quick Call (Known)', duration: 25, icon: '📞', note: 'Including phone anxiety prep and post-call processing' },
-          { name: 'Doctor Call', duration: 45, icon: '🏥', note: 'Including prep, hold time, form anxiety, note-taking' },
-          { name: 'Review Calendar', duration: 15, icon: '📅', note: 'Including anxiety about upcoming tasks, scheduling conflicts' },
-          { name: 'Text Responses', duration: 20, icon: '💬', note: 'Including reading, overthinking responses, sending' },
-          { name: 'Online Form', duration: 60, icon: '📋', note: 'Including gathering info, decision paralysis, double-checking' }
-        ]
+          {
+            name: 'Check Emails',
+            duration: 30,
+            icon: '📧',
+            note: 'Including reading, processing, responding, filing',
+          },
+          {
+            name: 'Quick Call (Known)',
+            duration: 25,
+            icon: '📞',
+            note: 'Including phone anxiety prep and post-call processing',
+          },
+          {
+            name: 'Doctor Call',
+            duration: 45,
+            icon: '🏥',
+            note: 'Including prep, hold time, form anxiety, note-taking',
+          },
+          {
+            name: 'Review Calendar',
+            duration: 15,
+            icon: '📅',
+            note: 'Including anxiety about upcoming tasks, scheduling conflicts',
+          },
+          {
+            name: 'Text Responses',
+            duration: 20,
+            icon: '💬',
+            note: 'Including reading, overthinking responses, sending',
+          },
+          {
+            name: 'Online Form',
+            duration: 60,
+            icon: '📋',
+            note: 'Including gathering info, decision paralysis, double-checking',
+          },
+        ],
       },
-      'household': {
+      household: {
         name: 'Household Tasks',
         tasks: [
-          { name: 'Tidy One Room', duration: 45, icon: '🧹', note: 'Including getting distracted by items found, organizing' },
-          { name: 'Do Dishes', duration: 35, icon: '🍽️', note: 'Including clearing space, washing, drying, putting away' },
-          { name: 'Laundry Start', duration: 20, icon: '👕', note: 'Including sorting, checking pockets, finding detergent' },
-          { name: 'Water Plants', duration: 15, icon: '🪴', note: 'Including checking each plant, getting water, cleanup' },
-          { name: 'Take Out Trash', duration: 15, icon: '🗑️', note: 'Including gathering from rooms, finding bags, taking outside' },
-          { name: 'Quick Grocery Run', duration: 75, icon: '🛒', note: 'Including list-making, travel, decision fatigue, checkout anxiety' }
-        ]
+          {
+            name: 'Tidy One Room',
+            duration: 45,
+            icon: '🧹',
+            note: 'Including getting distracted by items found, organizing',
+          },
+          {
+            name: 'Do Dishes',
+            duration: 35,
+            icon: '🍽️',
+            note: 'Including clearing space, washing, drying, putting away',
+          },
+          {
+            name: 'Laundry Start',
+            duration: 20,
+            icon: '👕',
+            note: 'Including sorting, checking pockets, finding detergent',
+          },
+          {
+            name: 'Water Plants',
+            duration: 15,
+            icon: '🪴',
+            note: 'Including checking each plant, getting water, cleanup',
+          },
+          {
+            name: 'Take Out Trash',
+            duration: 15,
+            icon: '🗑️',
+            note: 'Including gathering from rooms, finding bags, taking outside',
+          },
+          {
+            name: 'Quick Grocery Run',
+            duration: 75,
+            icon: '🛒',
+            note: 'Including list-making, travel, decision fatigue, checkout anxiety',
+          },
+        ],
       },
-      'selfcare': {
+      selfcare: {
         name: 'Self-Care & Health',
         tasks: [
-          { name: 'Stretch Break', duration: 20, icon: '🧘', note: 'Including setup, actual stretching, transition back' },
-          { name: 'Quick Walk', duration: 35, icon: '🚶', note: 'Including shoes, route decisions, getting back into flow' },
-          { name: 'Meditation', duration: 25, icon: '🧘‍♀️', note: 'Including setup, settling in, app fiddling, transition out' },
-          { name: 'Skincare Routine', duration: 25, icon: '🧴', note: 'Including product decisions, application, cleanup' },
-          { name: 'Take Vitamins', duration: 10, icon: '💊', note: 'Including remembering what to take, organizing pills' },
-          { name: 'Journal Entry', duration: 30, icon: '📔', note: 'Including setup, thinking, writing, processing emotions' }
-        ]
+          {
+            name: 'Stretch Break',
+            duration: 20,
+            icon: '🧘',
+            note: 'Including setup, actual stretching, transition back',
+          },
+          {
+            name: 'Quick Walk',
+            duration: 35,
+            icon: '🚶',
+            note: 'Including shoes, route decisions, getting back into flow',
+          },
+          {
+            name: 'Meditation',
+            duration: 25,
+            icon: '🧘‍♀️',
+            note: 'Including setup, settling in, app fiddling, transition out',
+          },
+          {
+            name: 'Skincare Routine',
+            duration: 25,
+            icon: '🧴',
+            note: 'Including product decisions, application, cleanup',
+          },
+          {
+            name: 'Take Vitamins',
+            duration: 10,
+            icon: '💊',
+            note: 'Including remembering what to take, organizing pills',
+          },
+          {
+            name: 'Journal Entry',
+            duration: 30,
+            icon: '📔',
+            note: 'Including setup, thinking, writing, processing emotions',
+          },
+        ],
       },
-      'work': {
+      work: {
         name: 'Work & Productivity',
         tasks: [
-          { name: 'Social Media Check', duration: 45, icon: '📱', note: 'Let\'s be honest - it\'s never just 5 minutes' },
-          { name: 'Quick Research', duration: 60, icon: '🔍', note: 'Including rabbit holes and "while I\'m here" detours' },
-          { name: 'File Organization', duration: 90, icon: '🗂️', note: 'Including creating systems, getting distracted by old files' },
-          { name: 'Return Item', duration: 50, icon: '📦', note: 'Including finding receipt, packaging, trip to store/post office' },
-          { name: 'Pay Bills', duration: 40, icon: '💳', note: 'Including login struggles, reviewing charges, payment processing' },
-          { name: 'Update Resume', duration: 120, icon: '📄', note: 'Including perfection spirals and format decisions' }
-        ]
-      }
+          {
+            name: 'Social Media Check',
+            duration: 45,
+            icon: '📱',
+            note: "Let's be honest - it's never just 5 minutes",
+          },
+          {
+            name: 'Quick Research',
+            duration: 60,
+            icon: '🔍',
+            note: 'Including rabbit holes and "while I\'m here" detours',
+          },
+          {
+            name: 'File Organization',
+            duration: 90,
+            icon: '🗂️',
+            note: 'Including creating systems, getting distracted by old files',
+          },
+          {
+            name: 'Return Item',
+            duration: 50,
+            icon: '📦',
+            note: 'Including finding receipt, packaging, trip to store/post office',
+          },
+          {
+            name: 'Pay Bills',
+            duration: 40,
+            icon: '💳',
+            note: 'Including login struggles, reviewing charges, payment processing',
+          },
+          {
+            name: 'Update Resume',
+            duration: 120,
+            icon: '📄',
+            note: 'Including perfection spirals and format decisions',
+          },
+        ],
+      },
     };
   }
 
@@ -1416,8 +1879,7 @@ export class EnoughCapacity {
 
     // Preset button handlers
     modal.addEventListener('click', (e) => {
-      if (e.target.classList.contains('modal-backdrop') ||
-          e.target.dataset.action === 'close') {
+      if (e.target.classList.contains('modal-backdrop') || e.target.dataset.action === 'close') {
         document.body.removeChild(modal);
         return;
       }
@@ -1452,7 +1914,7 @@ export class EnoughCapacity {
 
     if (selectedCategory === '') {
       // Show all tasks
-      Object.values(presets).forEach(category => {
+      Object.values(presets).forEach((category) => {
         tasksToShow.push(...category.tasks);
       });
     } else {
@@ -1460,18 +1922,23 @@ export class EnoughCapacity {
       tasksToShow = presets[selectedCategory]?.tasks || [];
     }
 
-    presetGrid.innerHTML = tasksToShow.map(task => `
+    presetGrid.innerHTML = tasksToShow
+      .map(
+        (task) => `
       <button class="preset-btn" data-preset='${JSON.stringify(task)}' title="${task.note}">
         <span class="preset-icon">${task.icon}</span>
         <span class="preset-name">${task.name}</span>
         <span class="preset-duration">${task.duration}m</span>
       </button>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   addQuickTask(modal) {
     const taskName = modal.querySelector('#quick-task-name').value.trim();
     const duration = parseInt(modal.querySelector('#quick-duration').value);
+    const energyType = modal.querySelector('#energy-type').value;
     const energyMultiplier = parseFloat(modal.querySelector('#energy-level').value);
 
     if (!taskName) {
@@ -1492,21 +1959,39 @@ export class EnoughCapacity {
     this.tasks.push({
       text: taskName,
       duration: duration,
+      energyType: energyType,
       energyMultiplier: energyMultiplier,
       adjustedCapacity: adjustedCapacity,
       completed: false,
       created: new Date().toISOString(),
-      fromQuickAdd: true
+      fromQuickAdd: true,
     });
 
     this.saveTasks();
     this.render();
 
-    const energyLabel = energyMultiplier === 1 ? 'high energy' :
-                       energyMultiplier === 1.5 ? 'medium energy' :
-                       energyMultiplier === 2.5 ? 'low energy' : 'very low energy';
+    const energyLabel =
+      energyMultiplier === 1
+        ? 'high energy'
+        : energyMultiplier === 1.5
+          ? 'medium energy'
+          : energyMultiplier === 2.5
+            ? 'low energy'
+            : 'very low energy';
 
-    this.showNotification(`✅ Added "${taskName}" (${Math.round(adjustedCapacity)}% capacity, ${energyLabel})`);
+    const energyTypeLabel =
+      {
+        mental: '🧠 Mental',
+        physical: '💪 Physical',
+        social: '👥 Social',
+        creative: '🎨 Creative',
+        emotional: '❤️ Emotional',
+        administrative: '📋 Administrative',
+      }[energyType] || energyType;
+
+    this.showNotification(
+      `✅ Added "${taskName}" (${energyTypeLabel}, ${Math.round(adjustedCapacity)}% capacity, ${energyLabel})`
+    );
 
     document.body.removeChild(modal);
   }
@@ -1686,12 +2171,12 @@ export class EnoughCapacity {
   initCalculator(modal) {
     let currentStep = 1;
     const maxSteps = 6;
-    let calculatorData = {
+    const calculatorData = {
       taskName: '',
       baseDuration: 15,
       factors: {},
       capacityMultiplier: 1,
-      finalCapacity: 0
+      finalCapacity: 0,
     };
 
     const nextBtn = modal.querySelector('#calc-next');
@@ -1740,8 +2225,7 @@ export class EnoughCapacity {
 
     // Close modal handlers
     modal.addEventListener('click', (e) => {
-      if (e.target.classList.contains('modal-backdrop') ||
-          e.target.dataset.action === 'close') {
+      if (e.target.classList.contains('modal-backdrop') || e.target.dataset.action === 'close') {
         document.body.removeChild(modal);
       }
     });
@@ -1784,7 +2268,7 @@ export class EnoughCapacity {
 
     function updateStepDisplay() {
       // Hide all steps
-      steps.forEach(step => step.classList.remove('active'));
+      steps.forEach((step) => step.classList.remove('active'));
 
       // Show current step
       const currentStepEl = modal.querySelector(`[data-step="${currentStep}"]`);
@@ -1811,7 +2295,7 @@ export class EnoughCapacity {
       const activeFactors = [];
 
       Object.entries(calculatorData.factors).forEach(([factor, weight]) => {
-        totalMultiplier += (weight / 100);
+        totalMultiplier += weight / 100;
         activeFactors.push(factor);
       });
 
@@ -1847,22 +2331,23 @@ export class EnoughCapacity {
       } else {
         const factorNames = {
           'find-materials': 'prep time',
-          'unfamiliar': 'learning curve',
-          'research': 'research needed',
-          'strangers': 'social anxiety',
-          'rejection': 'rejection sensitivity',
-          'boring': 'low motivation',
-          'distracting': 'environment',
-          'hyperfocus': 'hyperfocus risk',
-          'perfectionism': 'perfectionism',
-          'improve': 'optimization tendency',
-          'decompression': 'recovery time',
+          unfamiliar: 'learning curve',
+          research: 'research needed',
+          strangers: 'social anxiety',
+          rejection: 'rejection sensitivity',
+          boring: 'low motivation',
+          distracting: 'environment',
+          hyperfocus: 'hyperfocus risk',
+          perfectionism: 'perfectionism',
+          improve: 'optimization tendency',
+          decompression: 'recovery time',
           'social-drain': 'masking energy',
-          'focus-drain': 'intense focus'
+          'focus-drain': 'intense focus',
         };
 
-        const explanations = factorKeys.map(key => factorNames[key] || key);
-        explanation.textContent = explanations.slice(0, 3).join(' + ') +
+        const explanations = factorKeys.map((key) => factorNames[key] || key);
+        explanation.textContent =
+          explanations.slice(0, 3).join(' + ') +
           (explanations.length > 3 ? ` + ${explanations.length - 3} more` : '');
       }
     }
@@ -1878,12 +2363,14 @@ export class EnoughCapacity {
       factors: calculatorData.factors,
       completed: false,
       created: new Date().toISOString(),
-      fromCalculator: true
+      fromCalculator: true,
     });
 
     this.saveTasks();
     this.render();
-    this.showNotification(`✅ Task added! Estimated ${Math.round(calculatorData.finalCapacity)}% capacity`);
+    this.showNotification(
+      `✅ Task added! Estimated ${Math.round(calculatorData.finalCapacity)}% capacity`
+    );
   }
 
   addTaskFromSuggestion(task, duration) {
@@ -1892,7 +2379,7 @@ export class EnoughCapacity {
       duration: duration,
       completed: false,
       created: new Date().toISOString(),
-      fromSuggestion: true
+      fromSuggestion: true,
     });
 
     this.saveTasks();
@@ -1915,7 +2402,7 @@ export class EnoughCapacity {
   executeTool(tool) {
     switch (tool) {
       case 'builder':
-        this.showNotification('🔨 Task Builder: Let\'s break this down into smaller steps!');
+        this.showNotification("🔨 Task Builder: Let's break this down into smaller steps!");
         break;
       case 'flip':
         const coinFlip = Math.random() > 0.5 ? 'Heads' : 'Tails';
@@ -1944,13 +2431,25 @@ export class EnoughCapacity {
     setInterval(() => {
       this.render();
     }, 60000);
-    
+
     // More frequent updates when modal is open for better responsiveness
     setInterval(() => {
       if (this.isModalOpen) {
         this.render();
       }
     }, 2000);
+  }
+
+  getEnergyTypeEmoji(energyType) {
+    const energyTypeEmojis = {
+      mental: '🧠',
+      physical: '💪',
+      social: '👥',
+      creative: '🎨',
+      emotional: '❤️',
+      administrative: '📋',
+    };
+    return energyTypeEmojis[energyType] || '⚡';
   }
 
   showNotification(message, duration = 3000) {
@@ -1982,5 +2481,6 @@ export class EnoughCapacity {
 }
 // Add slide animation for notifications
 const style = document.createElement('style');
-style.textContent = '@keyframes slideInRight { 0% { transform: translateX(100%); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }';
+style.textContent =
+  '@keyframes slideInRight { 0% { transform: translateX(100%); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }';
 document.head.appendChild(style);

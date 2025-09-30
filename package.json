@@ -8,7 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.1",
@@ -20,5 +23,8 @@
     "postcss": "^8.4.35",
     "prettier": "^3.2.5",
     "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "firebase": "^12.3.0"
   }
 }

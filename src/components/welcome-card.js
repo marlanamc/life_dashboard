@@ -23,7 +23,8 @@ export class WelcomeCard {
   }
 
   initializeDemoData() {
-    const hasData = this.data.get('todayEvents', []).length > 0 || this.data.get('calendarConnected', false);
+    const hasData =
+      this.data.get('todayEvents', []).length > 0 || this.data.get('calendarConnected', false);
     if (!hasData) {
       // Add some demo events for the next few hours
       const now = new Date();
@@ -32,7 +33,7 @@ export class WelcomeCard {
           title: 'Team Standup',
           start: new Date(now.getTime() + 30 * 60 * 1000).toISOString(), // 30 minutes from now
           end: new Date(now.getTime() + 60 * 60 * 1000).toISOString(), // 1 hour from now
-          location: 'Conference Room A'
+          location: 'Conference Room A',
         },
         {
           title: 'Focus Time: Project Review',
@@ -43,8 +44,8 @@ export class WelcomeCard {
           title: 'Coffee with Sarah',
           start: new Date(now.getTime() + 4 * 60 * 60 * 1000).toISOString(), // 4 hours from now
           end: new Date(now.getTime() + 5 * 60 * 60 * 1000).toISOString(), // 5 hours from now
-          location: 'Local Café'
-        }
+          location: 'Local Café',
+        },
       ];
       this.data.set('todayEvents', demoEvents);
     }
@@ -78,12 +79,12 @@ export class WelcomeCard {
 
     // Filter events for today and sort by time
     const todayEvents = events
-      .filter(event => new Date(event.start).toDateString() === today)
+      .filter((event) => new Date(event.start).toDateString() === today)
       .sort((a, b) => new Date(a.start) - new Date(b.start));
 
-    const upcoming = todayEvents.filter(event => new Date(event.start) > now);
-    const current = todayEvents.find(event =>
-      new Date(event.start) <= now && new Date(event.end) > now
+    const upcoming = todayEvents.filter((event) => new Date(event.start) > now);
+    const current = todayEvents.find(
+      (event) => new Date(event.start) <= now && new Date(event.end) > now
     );
 
     return { todayEvents, upcoming, current };
@@ -93,7 +94,7 @@ export class WelcomeCard {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     });
   }
 
@@ -157,7 +158,9 @@ export class WelcomeCard {
         </div>
 
         <div class="calendar-section">
-          ${calendarConnected ? `
+          ${
+            calendarConnected
+              ? `
             <div class="today-schedule-compact">
               <div class="schedule-header-compact">
                 <span class="schedule-icon">📅</span>
@@ -165,25 +168,39 @@ export class WelcomeCard {
                 <button class="btn btn--small btn--ghost refresh-calendar-btn">🔄</button>
               </div>
 
-              ${todayEvents.length > 0 ? `
+              ${
+                todayEvents.length > 0
+                  ? `
                 <div class="events-preview">
-                  ${todayEvents.slice(0, 2).map(event => `
+                  ${todayEvents
+                    .slice(0, 2)
+                    .map(
+                      (event) => `
                     <div class="event-compact ${this.getEventStatus(event)}">
                       <span class="event-time-compact">${this.formatTime(event.start)}</span>
                       <span class="event-title-compact">${event.title}</span>
                     </div>
-                  `).join('')}
-                  ${todayEvents.length > 2 ? `
+                  `
+                    )
+                    .join('')}
+                  ${
+                    todayEvents.length > 2
+                      ? `
                     <div class="more-events-compact">+${todayEvents.length - 2} more</div>
-                  ` : ''}
+                  `
+                      : ''
+                  }
                 </div>
-              ` : `
+              `
+                  : `
                 <div class="no-events-compact">
                   <span>📭 No events today - perfect for deep work!</span>
                 </div>
-              `}
+              `
+              }
             </div>
-          ` : `
+          `
+              : `
             <div class="calendar-setup-compact">
               <div class="setup-row">
                 <div class="setup-info">
@@ -196,17 +213,22 @@ export class WelcomeCard {
                 </div>
               </div>
             </div>
-          `}
+          `
+          }
         </div>
 
-        ${upcoming.length > 0 && calendarConnected ? `
+        ${
+          upcoming.length > 0 && calendarConnected
+            ? `
           <div class="next-event-alert">
             <span class="alert-icon">⏰</span>
             <span class="alert-text">
               Next: <strong>${upcoming[0].title}</strong> in ${this.getTimeUntil(upcoming[0].start)}
             </span>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
 
       <style>

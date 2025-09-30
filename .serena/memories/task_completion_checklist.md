@@ -20,6 +20,7 @@
    - Verify accessibility features work
 
 ## Design Consistency
+
 - Ensure changes follow the organic design system
 - Use existing CSS custom properties
 - Maintain ADHD-friendly interface principles

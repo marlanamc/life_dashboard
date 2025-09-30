@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Life Dashboard collection - users can only access their own data
+    match /lifeDashboard/{userId} {
+      // Allow read/write access only to authenticated users for their own document
+      allow read, write: if request.auth != null 
+                        && request.auth.uid == userId
+                        && isValidRequest();
+    }
+    
+    // Function to validate request data
+    function isValidRequest() {
+      // For write operations, ensure reasonable data structure
+      return request.resource == null || 
+             (request.resource.data is map &&
+              request.resource.data.keys().size() <= 200 &&
+              request.resource.data.keys().size() >= 0);
+    }
+    
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

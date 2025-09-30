@@ -1,11 +1,12 @@
-import { DataManager } from './data-manager.js';
-import { ThemeController } from './theme-controller.js';
-import { SimpleBrainDump } from './simple-brain-dump.js';
-import { EnoughCapacity } from './enough-capacity.js';
-import { ProjectsTable } from './projects-table.js';
-import { TickTickIntegration } from './ticktick-integration.js';
-import { WeeklyCalendar } from './weekly-calendar.js';
+import { DataManager } from './utils/data-manager.js';
+import { ThemeController } from './utils/theme-controller.js';
+import { SimpleBrainDump } from './components/simple-brain-dump.js';
+import { EnoughCapacity } from './components/enough-capacity.js';
+import { ProjectsTable } from './components/projects-table.js';
+import { TickTickIntegration } from './services/ticktick-integration.js';
+import { WeeklyCalendar } from './components/weekly-calendar.js';
 import { TaskIntegrationHub } from './task-integration-hub.js';
+import { AuthManager } from './services/auth-manager.js';
 
 /**
  * Main App Controller
@@ -21,10 +22,18 @@ export class LifeDashboard {
     this.celebrationsEnabled = true;
     this.floatingNotesInterval = null;
     this.themePills = [];
+    this.authManager = null;
+    this.lastAuthUserId = null;
+    this.hasShownSignedOutMessage = false;
     this.init();
   }
 
   init() {
+    // Initialize authentication overlay and account controls
+    this.authManager = new AuthManager({
+      onAuthChange: (user) => this.handleAuthStateChange(user),
+    });
+
     // Initialize theme controller first
     this.themeController = new ThemeController();
 
@@ -55,6 +64,51 @@ export class LifeDashboard {
     console.log('Life Dashboard v5 initialized with Wireframe Priority Layout');
   }
 
+  handleAuthStateChange(user) {
+    const currentId = user?.uid ?? null;
+    if (currentId === this.lastAuthUserId) {
+      return;
+    }
+
+    this.lastAuthUserId = currentId;
+
+    if (user) {
+      const identifier = user.displayName || user.email || 'your account';
+      this.hasShownSignedOutMessage = false;
+      this.showNotification(`🔐 Signed in as ${identifier}`);
+    } else if (!this.hasShownSignedOutMessage) {
+      this.hasShownSignedOutMessage = true;
+      this.showNotification('🔓 Signed out. Data will stay on this device until you sign in.');
+    }
+
+    // Update settings menu with user info
+    this.updateSettingsUserInfo(user);
+  }
+
+  handleLogout() {
+    if (this.authManager && this.authManager.auth) {
+      this.authManager.handleSignOut();
+      this.closeSettingsMenu();
+    }
+  }
+
+  updateSettingsUserInfo(user) {
+    const userInfoDiv = document.getElementById('settings-user-info');
+    const greetingSpan = document.getElementById('user-greeting');
+    const emailSpan = document.getElementById('user-email');
+
+    if (userInfoDiv && greetingSpan && emailSpan) {
+      if (user) {
+        userInfoDiv.style.display = 'block';
+        const displayName = user.displayName;
+        greetingSpan.textContent = displayName ? `Hi, ${displayName}!` : 'Hi 👋';
+        emailSpan.textContent = user.email ?? 'Signed in';
+      } else {
+        userInfoDiv.style.display = 'none';
+      }
+    }
+  }
+
   initializePriorityComponents() {
     // Initialize greeting and time display
     this.initializeWelcomeSection();
@@ -62,30 +116,49 @@ export class LifeDashboard {
     // Initialize projects table
     const projectsTableContainer = document.getElementById('projects-table-container');
     if (projectsTableContainer) {
-      this.modules.projectsTable = new ProjectsTable(projectsTableContainer, this.data, this.taskHub);
+      this.modules.projectsTable = new ProjectsTable(
+        projectsTableContainer,
+        this.data,
+        this.taskHub
+      );
     }
   }
 
   initializeSecondaryComponents() {
     // Initialize Enough Capacity in secondary position
-    this.modules.enoughCapacity = new EnoughCapacity(document.getElementById('enough-capacity-container'), this.data, this.taskHub);
+    this.modules.enoughCapacity = new EnoughCapacity(
+      document.getElementById('enough-capacity-container'),
+      this.data,
+      this.taskHub
+    );
 
     // Initialize Brain Dump in secondary position
-    this.modules.simpleBrainDump = new SimpleBrainDump(document.getElementById('brain-dump-plus-container'), this.data, this.taskHub);
+    this.modules.simpleBrainDump = new SimpleBrainDump(
+      document.getElementById('brain-dump-plus-container'),
+      this.data,
+      this.taskHub
+    );
 
-    // Initialize TickTick Integration
-    this.modules.ticktickIntegration = new TickTickIntegration(document.getElementById('ticktick-integration-container'), this.data);
+    // Initialize TickTick Integration FIRST
+    this.modules.ticktickIntegration = new TickTickIntegration(
+      document.getElementById('ticktick-integration-container'),
+      this.data
+    );
 
     // Initialize Weekly Calendar
-    this.modules.weeklyCalendar = new WeeklyCalendar(document.getElementById('weekly-calendar-container'), this.data);
-    
-    // Connect TickTick service to weekly calendar if available
-    setTimeout(() => {
-      const ticktickService = this.data.get('ticktick_service');
-      if (ticktickService) {
-        this.modules.weeklyCalendar.setTickTickService(ticktickService);
-      }
-    }, 100);
+    this.modules.weeklyCalendar = new WeeklyCalendar(
+      document.getElementById('weekly-calendar-container'),
+      this.data
+    );
+
+    // Connect TickTick service to weekly calendar - should be available immediately now
+    const ticktickService = this.modules.ticktickIntegration.ticktickService;
+    if (ticktickService) {
+      console.log('🔗 Connecting TickTick service to weekly calendar');
+      this.modules.weeklyCalendar.setTickTickService(ticktickService);
+    } else {
+      console.warn('⚠️ TickTick service not available for weekly calendar');
+    }
   }
 
   initializeTertiaryComponents() {
@@ -114,7 +187,7 @@ export class LifeDashboard {
 
       if (hour >= 12 && hour < 17) {
         greeting = 'Good afternoon';
-        subtitle = 'How\'s your day going?';
+        subtitle = "How's your day going?";
       } else if (hour >= 17) {
         greeting = 'Good evening';
         subtitle = 'Time to wind down and reflect';
@@ -122,12 +195,12 @@ export class LifeDashboard {
 
       // Add energy-based encouragement for ADHD
       const encouragements = [
-        'You\'ve got this! 💪',
+        "You've got this! 💪",
         'One step at a time',
         'Your pace is perfect',
         'Progress over perfection',
         'Be kind to yourself today',
-        'Small wins count too'
+        'Small wins count too',
       ];
 
       if (Math.random() > 0.5) {
@@ -152,7 +225,7 @@ export class LifeDashboard {
       timeContainer.textContent = now.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
       });
     }
 
@@ -163,7 +236,7 @@ export class LifeDashboard {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
-        year: 'numeric'
+        year: 'numeric',
       });
     }
 
@@ -217,9 +290,13 @@ export class LifeDashboard {
           <span class="compact-calendar__month">${monthName} ${year}</span>
         </div>
         <div class="compact-calendar__grid">
-          ${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => `
+          ${['S', 'M', 'T', 'W', 'T', 'F', 'S']
+            .map(
+              (day) => `
             <div class="compact-calendar__weekday">${day}</div>
-          `).join('')}
+          `
+            )
+            .join('')}
           ${dayCells.join('')}
         </div>
       </div>
@@ -256,33 +333,40 @@ export class LifeDashboard {
           <button class="btn btn--micro focus-planner-btn" title="Plan Focus Sessions">🔥 Plan</button>
         </div>
         <div class="compact-week__days">
-          ${weekDays.map((day, index) => {
-            const isToday = day.toDateString() === today.toDateString();
-            const dayLabel = day.toLocaleDateString([], { weekday: 'short' }).toUpperCase();
-            const dayNumber = day.getDate();
-            const dayKey = day.toDateString();
-            const dayFocusSessions = focusSessions.filter(session =>
-              new Date(session.date).toDateString() === dayKey
-            );
+          ${weekDays
+            .map((day, index) => {
+              const isToday = day.toDateString() === today.toDateString();
+              const dayLabel = day.toLocaleDateString([], { weekday: 'short' }).toUpperCase();
+              const dayNumber = day.getDate();
+              const dayKey = day.toDateString();
+              const dayFocusSessions = focusSessions.filter(
+                (session) => new Date(session.date).toDateString() === dayKey
+              );
 
-            return `
+              return `
               <div class="compact-week__day ${isToday ? 'is-today' : ''}" data-date="${dayKey}">
                 <span class="compact-week__day-label">${dayLabel}</span>
                 <span class="compact-week__date">${dayNumber}</span>
                 <div class="focus-sessions">
-                  ${dayFocusSessions.length > 0 ?
-                    dayFocusSessions.map(session => `
+                  ${
+                    dayFocusSessions.length > 0
+                      ? dayFocusSessions
+                          .map(
+                            (session) => `
                       <div class="focus-session-badge" title="${session.task}">
                         <span class="session-time">${session.time}</span>
                         <span class="session-icon">${session.type === 'pomodoro' ? '🍅' : '🔥'}</span>
                       </div>
-                    `).join('') :
-                    `<button class="add-focus-btn" title="Add focus session">+</button>`
+                    `
+                          )
+                          .join('')
+                      : `<button class="add-focus-btn" title="Add focus session">+</button>`
                   }
                 </div>
               </div>
             `;
-          }).join('')}
+            })
+            .join('')}
         </div>
       </div>
 
@@ -348,7 +432,7 @@ export class LifeDashboard {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 7);
 
-    return sessions.filter(session => {
+    return sessions.filter((session) => {
       const sessionDate = new Date(session.date);
       return sessionDate >= startOfWeek && sessionDate < endOfWeek;
     });
@@ -367,7 +451,7 @@ export class LifeDashboard {
         this.openFocusPlanner(modal);
       });
 
-      [closeBtn, backdropBtn, cancelBtn].forEach(btn => {
+      [closeBtn, backdropBtn, cancelBtn].forEach((btn) => {
         if (btn) {
           btn.addEventListener('click', () => {
             modal.style.display = 'none';
@@ -377,7 +461,7 @@ export class LifeDashboard {
     }
 
     // Add focus session buttons on individual days
-    container.querySelectorAll('.add-focus-btn').forEach(btn => {
+    container.querySelectorAll('.add-focus-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const dayElement = e.target.closest('.compact-week__day');
         const selectedDate = dayElement.dataset.date;
@@ -386,9 +470,11 @@ export class LifeDashboard {
     });
 
     // Session type toggles
-    container.querySelectorAll('.session-type-btn').forEach(btn => {
+    container.querySelectorAll('.session-type-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
-        container.querySelectorAll('.session-type-btn').forEach(b => b.classList.remove('active'));
+        container
+          .querySelectorAll('.session-type-btn')
+          .forEach((b) => b.classList.remove('active'));
         e.target.classList.add('active');
 
         const customDuration = container.querySelector('.custom-duration');
@@ -437,7 +523,7 @@ export class LifeDashboard {
 
     selectElement.innerHTML = '<option value="">Select from projects...</option>';
 
-    projects.forEach(project => {
+    projects.forEach((project) => {
       const option = document.createElement('option');
       option.value = project.name;
       option.textContent = project.name;
@@ -450,10 +536,10 @@ export class LifeDashboard {
       'Creative Thinking',
       'Admin & Organization',
       'Learning & Research',
-      'Writing & Documentation'
+      'Writing & Documentation',
     ];
 
-    defaultSessions.forEach(session => {
+    defaultSessions.forEach((session) => {
       const option = document.createElement('option');
       option.value = session;
       option.textContent = session;
@@ -489,10 +575,10 @@ export class LifeDashboard {
       date,
       time,
       type,
-      duration: type === 'custom' ? parseInt(customDuration.value, 10) :
-                type === 'deep-work' ? 60 : 25,
+      duration:
+        type === 'custom' ? parseInt(customDuration.value, 10) : type === 'deep-work' ? 60 : 25,
       created: new Date().toISOString(),
-      completed: false
+      completed: false,
     };
 
     // Save to data manager
@@ -536,12 +622,13 @@ export class LifeDashboard {
     const settingsToggle = document.getElementById('settings-toggle');
     const settingsDropdown = document.getElementById('settings-dropdown');
     const settingsClose = document.getElementById('settings-close');
-    const dayModeToggle = document.getElementById('day-mode-toggle');
-    const emergencyToggle = document.getElementById('emergency-toggle');
-    const focusToggle = document.getElementById('focus-toggle');
-    const autoThemeToggle = document.getElementById('auto-theme-toggle');
+    const logoutButton = document.getElementById('logout-button');
 
-    this.themePills = Array.from(document.querySelectorAll('.theme-pill'));
+    // Feature toggle buttons
+    const stimmingCornerToggle = document.getElementById('stimming-corner-toggle');
+    const floatingNotesToggle = document.getElementById('floating-notes-toggle');
+    const celebrationsToggle = document.getElementById('celebrations-toggle');
+    const autoThemeToggle = document.getElementById('auto-theme-toggle');
 
     if (settingsToggle && settingsDropdown && settingsMenu) {
       settingsToggle.addEventListener('click', (event) => {
@@ -562,70 +649,49 @@ export class LifeDashboard {
         }
       });
 
+      // Handle logout button
+      if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+          this.handleLogout();
+        });
+      }
+
+      // Handle feature toggles
+      if (stimmingCornerToggle) {
+        stimmingCornerToggle.addEventListener('click', () => {
+          this.toggleStimmingCorner();
+          this.updateSettingsStates();
+        });
+      }
+
+      if (floatingNotesToggle) {
+        floatingNotesToggle.addEventListener('click', () => {
+          this.toggleFloatingNotes();
+          this.updateSettingsStates();
+        });
+      }
+
+      if (celebrationsToggle) {
+        celebrationsToggle.addEventListener('click', () => {
+          this.toggleCelebrations();
+          this.updateSettingsStates();
+        });
+      }
+
+      if (autoThemeToggle) {
+        autoThemeToggle.addEventListener('click', () => {
+          const isEnabled = this.data.get('autoThemeEnabled', true);
+          this.setAutoThemeEnabled(!isEnabled);
+          this.updateSettingsStates();
+        });
+      }
+
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
           this.closeSettingsMenu();
         }
       });
     }
-
-    // Day mode toggle functionality
-    if (dayModeToggle) {
-      const isDayMode = localStorage.getItem('dashboard-day-mode') === 'true';
-      this.applyDayMode(isDayMode);
-
-      dayModeToggle.addEventListener('click', (event) => {
-        event.preventDefault();
-        const newDayMode = !document.body.hasAttribute('data-day-mode');
-        this.applyDayMode(newDayMode);
-        localStorage.setItem('dashboard-day-mode', newDayMode.toString());
-        this.updateSettingsStates();
-      });
-    }
-
-    // Emergency mode toggle
-    if (emergencyToggle) {
-      emergencyToggle.addEventListener('click', (event) => {
-        event.preventDefault();
-        this.toggleEmergencyMode();
-      });
-    }
-
-    // Focus mode toggle
-    if (focusToggle) {
-      focusToggle.addEventListener('click', (event) => {
-        event.preventDefault();
-        this.toggleFocusMode();
-      });
-    }
-
-    // Auto theme toggle
-    if (autoThemeToggle) {
-      autoThemeToggle.addEventListener('click', (event) => {
-        event.preventDefault();
-        const currentlyAuto = !this.themeController.manualOverride;
-        this.setAutoThemeEnabled(!currentlyAuto);
-      });
-    }
-
-    // Manual theme pills
-    this.themePills.forEach((pill) => {
-      pill.addEventListener('click', (event) => {
-        event.preventDefault();
-        const targetTheme = pill.dataset.themeTarget;
-        if (!targetTheme) {
-          return;
-        }
-
-        this.setAutoThemeEnabled(false, { silent: true });
-        this.themeController.manualOverride = true;
-        localStorage.setItem('dashboard-theme', targetTheme);
-        localStorage.setItem('dashboard-theme-manual', 'true');
-        this.themeController.applyTheme(targetTheme);
-        this.showNotification(`${this.themeController.getThemeEmoji(targetTheme)} ${targetTheme.charAt(0).toUpperCase() + targetTheme.slice(1)} theme locked in.`);
-        this.updateSettingsStates();
-      });
-    });
 
     this.updateSettingsStates();
   }
@@ -664,48 +730,40 @@ export class LifeDashboard {
     }
   }
 
-  setControlState(stateKey, isActive, overrideLabel = null) {
-    const stateElement = document.querySelector(`[data-state="${stateKey}"]`);
-    if (!stateElement) {
-      return;
-    }
+  // setControlState method removed - no longer needed
 
-    const control = stateElement.closest('.settings-item');
-    const label = overrideLabel || (isActive ? 'On' : 'Off');
-
-    stateElement.textContent = label;
-
-    if (control) {
-      control.classList.toggle('is-active', isActive);
-      control.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    }
-  }
-
-  updateThemePills() {
-    if (!this.themePills?.length) {
-      return;
-    }
-
-    const isManual = this.themeController?.manualOverride;
-    const currentTheme = this.themeController?.currentTheme;
-
-    this.themePills.forEach((pill) => {
-      const targetTheme = pill.dataset.themeTarget;
-      const isActive = Boolean(isManual && targetTheme === currentTheme);
-      pill.classList.toggle('is-active', isActive);
-      pill.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-  }
+  // updateThemePills method removed - no longer needed
 
   updateSettingsStates() {
-    this.setControlState('emergency', this.data.get('emergencyMode', false));
-    this.setControlState('focus', document.body.hasAttribute('data-focus-mode'));
-    this.setControlState('day-mode', document.body.hasAttribute('data-day-mode'));
+    // Update toggle button states to show active/inactive
+    const stimmingCornerToggle = document.getElementById('stimming-corner-toggle');
+    const floatingNotesToggle = document.getElementById('floating-notes-toggle');
+    const celebrationsToggle = document.getElementById('celebrations-toggle');
+    const autoThemeToggle = document.getElementById('auto-theme-toggle');
 
-    const autoThemeActive = !this.themeController?.manualOverride;
-    this.setControlState('auto-theme', autoThemeActive, autoThemeActive ? 'On' : 'Paused');
+    // Stimming Corner toggle
+    if (stimmingCornerToggle) {
+      const isEnabled = this.data.get('stimmingCornerEnabled', false);
+      stimmingCornerToggle.classList.toggle('is-active', isEnabled);
+    }
 
-    this.updateThemePills();
+    // Floating Notes toggle
+    if (floatingNotesToggle) {
+      const isEnabled = this.data.get('floatingNotesEnabled', false);
+      floatingNotesToggle.classList.toggle('is-active', isEnabled);
+    }
+
+    // Celebrations toggle
+    if (celebrationsToggle) {
+      const isEnabled = this.data.get('celebrationsEnabled', true);
+      celebrationsToggle.classList.toggle('is-active', isEnabled);
+    }
+
+    // Auto Theme toggle
+    if (autoThemeToggle) {
+      const isEnabled = this.data.get('autoThemeEnabled', true);
+      autoThemeToggle.classList.toggle('is-active', isEnabled);
+    }
   }
 
   setAutoThemeEnabled(enabled, options = {}) {
@@ -857,11 +915,13 @@ export class LifeDashboard {
   }
 
   attachGlobalEvents() {
-    // Add project button handler
-    const addProjectBtn = document.querySelector('.add-project-btn');
-    if (addProjectBtn) {
-      addProjectBtn.addEventListener('click', () => this.showNewProjectModal());
-    }
+    // Add project button handler - use event delegation to avoid multiple listeners
+    document.addEventListener('click', (event) => {
+      if (event.target.classList.contains('add-project-btn')) {
+        event.preventDefault();
+        this.showNewProjectModal();
+      }
+    });
 
     // Emergency mode toggle for any global trigger outside settings menu
     document.querySelectorAll('.emergency-toggle').forEach((button) => {
@@ -1020,11 +1080,14 @@ export class LifeDashboard {
   startFloatingNotesInterval() {
     this.stopFloatingNotesInterval();
 
-    this.floatingNotesInterval = setInterval(() => {
-      if (document.visibilityState === 'visible' && this.floatingNotesEnabled) {
-        this.showFloatingNote('💭 Quick brain check - what were you doing?', 5000);
-      }
-    }, 25 * 60 * 1000);
+    this.floatingNotesInterval = setInterval(
+      () => {
+        if (document.visibilityState === 'visible' && this.floatingNotesEnabled) {
+          this.showFloatingNote('💭 Quick brain check - what were you doing?', 5000);
+        }
+      },
+      25 * 60 * 1000
+    );
   }
 
   stopFloatingNotesInterval() {
@@ -1193,6 +1256,12 @@ export class LifeDashboard {
   }
 
   showNewProjectModal() {
+    // Check if modal already exists
+    const existingModal = document.querySelector('.project-modal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
     const modal = document.createElement('div');
     modal.className = 'project-modal';
     modal.innerHTML = `
@@ -1261,24 +1330,36 @@ export class LifeDashboard {
     cancelBtn.addEventListener('click', closeModal);
     backdrop.addEventListener('click', closeModal);
 
+    // Also add click handler for the submit button as backup
+    const submitBtn = modal.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        form.dispatchEvent(new Event('submit'));
+      });
+    }
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
 
+      const projectName = document.getElementById('project-name').value.trim();
+
+      if (!projectName) {
+        alert('Please enter a project name');
+        document.getElementById('project-name').focus();
+        return;
+      }
+
       const projectData = {
-        name: document.getElementById('project-name').value.trim(),
+        name: projectName,
         category: document.getElementById('project-category').value,
         priority: document.getElementById('project-priority').value,
         todos: document.getElementById('project-todos').value.trim(),
         repoUrl: document.getElementById('project-repo').value.trim(),
-        obsidianNote: document.getElementById('project-obsidian').value.trim()
+        obsidianNote: document.getElementById('project-obsidian').value.trim(),
       };
-
-      if (projectData.name) {
-        this.modules.projectsTable.addProject(projectData);
-        closeModal();
-      } else {
-        alert('Please enter a project name');
-      }
+      this.modules.projectsTable.addProject(projectData);
+      closeModal();
     });
 
     // Focus the name field

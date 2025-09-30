@@ -125,7 +125,7 @@ export class ThemeController {
       day: '☀️',
       afternoon: '🌤️',
       dusk: '🌅',
-      evening: '🌙'
+      evening: '🌙',
     };
     return emojis[theme] || '🌟';
   }
@@ -176,7 +176,7 @@ export class ThemeController {
       afternoon: 'Afternoon Mode',
       dusk: 'Dusk Mode',
       evening: 'Evening Mode',
-      auto: 'Auto Mode Enabled'
+      auto: 'Auto Mode Enabled',
     };
 
     notification.className = 'theme-notification';
@@ -207,7 +207,7 @@ export class ThemeController {
     return {
       current: this.currentTheme,
       isManual: this.manualOverride,
-      timeBasedTheme: this.getThemeByTime()
+      timeBasedTheme: this.getThemeByTime(),
     };
   }
 }

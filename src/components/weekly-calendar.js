@@ -10,7 +10,7 @@ export class WeeklyCalendar {
     this.currentWeek = new Date();
     this.events = [];
     this.tasks = [];
-    
+
     this.init();
   }
 
@@ -19,6 +19,24 @@ export class WeeklyCalendar {
     if (this.container) {
       this.render();
       this.loadEvents();
+
+      // Listen for TickTick integration events to keep calendar in sync
+      try {
+        document.addEventListener('ticktick:connected', () => {
+          // Use the globally exposed service if available
+          const svc =
+            window.lifeDashboard?.modules?.ticktickIntegration?.ticktickService ||
+            this.ticktickService;
+          if (svc) this.setTickTickService(svc);
+        });
+        document.addEventListener('ticktick:synced', () => this.refresh());
+        document.addEventListener('ticktick:disconnected', () => {
+          this.tasks = [];
+          this.render();
+        });
+      } catch (e) {
+        console.warn('WeeklyCalendar: failed to attach TickTick event listeners', e);
+      }
     } else {
       console.error('WeeklyCalendar: Container not found!');
     }
@@ -28,7 +46,7 @@ export class WeeklyCalendar {
     const weekDates = this.getWeekDates(this.currentWeek);
     const weekStart = weekDates[0];
     const weekEnd = weekDates[6];
-    
+
     this.container.innerHTML = `
       <div class="weekly-calendar">
         <div class="calendar-header">
@@ -59,11 +77,14 @@ export class WeeklyCalendar {
     `;
 
     this.attachEventListeners();
-    
+
     // Debug: Check if navigation buttons were created
     const prevBtn = this.container.querySelector('.prev-week-btn');
     const nextBtn = this.container.querySelector('.next-week-btn');
-    console.log('WeeklyCalendar: Navigation buttons created:', { prevBtn: !!prevBtn, nextBtn: !!nextBtn });
+    console.log('WeeklyCalendar: Navigation buttons created:', {
+      prevBtn: !!prevBtn,
+      nextBtn: !!nextBtn,
+    });
   }
 
   renderDayCard(date, index) {
@@ -71,7 +92,7 @@ export class WeeklyCalendar {
     const isSelected = this.isSelected(date);
     const dayEvents = this.getEventsForDate(date);
     const dayTasks = this.getTasksForDate(date);
-    
+
     return `
       <div class="day-card ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" data-date="${this.formatDate(date)}">
         <div class="day-header">
@@ -80,21 +101,32 @@ export class WeeklyCalendar {
         </div>
         
         <div class="day-events">
-          ${dayEvents.length > 0 ? 
-            dayEvents.map(event => `
+          ${
+            dayEvents.length > 0
+              ? dayEvents
+                  .map(
+                    (event) => `
               <div class="event-item ${event.priority || 'medium'}-priority" title="${event.title}">
                 ${event.title}
               </div>
-            `).join('') : 
-            '<div class="no-events">No events</div>'
+            `
+                  )
+                  .join('')
+              : '<div class="no-events">No events</div>'
           }
           
-          ${dayTasks.length > 0 ? 
-            dayTasks.map(task => `
+          ${
+            dayTasks.length > 0
+              ? dayTasks
+                  .map(
+                    (task) => `
               <div class="event-item task-item ${task.priority || 'medium'}-priority" title="${task.title}">
                 📋 ${task.title}
               </div>
-            `).join('') : ''
+            `
+                  )
+                  .join('')
+              : ''
           }
         </div>
         
@@ -109,13 +141,13 @@ export class WeeklyCalendar {
     const dates = [];
     const startOfWeek = new Date(centerDate);
     startOfWeek.setDate(centerDate.getDate() - centerDate.getDay());
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
       dates.push(date);
     }
-    
+
     return dates;
   }
 
@@ -130,8 +162,20 @@ export class WeeklyCalendar {
   }
 
   formatDateShort(date) {
-    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 
-                   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const months = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
+    ];
     return `${months[date.getMonth()]} ${date.getDate()}`;
   }
 
@@ -152,7 +196,7 @@ export class WeeklyCalendar {
 
   getEventsForDate(date) {
     const dateStr = this.formatDate(date);
-    return this.events.filter(event => {
+    return this.events.filter((event) => {
       const eventDate = new Date(event.start || event.dueDate);
       return eventDate.toDateString() === date.toDateString();
     });
@@ -160,7 +204,7 @@ export class WeeklyCalendar {
 
   getTasksForDate(date) {
     const dateStr = this.formatDate(date);
-    return this.tasks.filter(task => {
+    return this.tasks.filter((task) => {
       if (!task.dueDate) return false;
       const taskDate = new Date(task.dueDate);
       return taskDate.toDateString() === date.toDateString();
@@ -176,15 +220,21 @@ export class WeeklyCalendar {
     try {
       // Load events from TickTick
       const tasks = await this.ticktickService.getTasks();
-      this.tasks = tasks;
-      
+      this.tasks = Array.isArray(tasks) ? tasks : [];
+
       // Also load from local data
       const localEvents = this.data.get('calendar_events', []);
       this.events = localEvents;
-      
+
       this.render();
     } catch (error) {
       console.error('Failed to load events:', error);
+      // Attempt a soft fallback: show any locally cached mock tasks if present
+      const mock = this.data.get('ticktick_mock_tasks', []);
+      if (Array.isArray(mock) && mock.length > 0) {
+        this.tasks = mock;
+        this.render();
+      }
     }
   }
 
@@ -192,16 +242,16 @@ export class WeeklyCalendar {
     // Week navigation
     const prevBtn = this.container.querySelector('.prev-week-btn');
     const nextBtn = this.container.querySelector('.next-week-btn');
-    
+
     console.log('Navigation buttons found:', { prevBtn, nextBtn });
-    
+
     if (prevBtn) {
       prevBtn.addEventListener('click', () => {
         console.log('Previous week clicked');
         this.goToPreviousWeek();
       });
     }
-    
+
     if (nextBtn) {
       nextBtn.addEventListener('click', () => {
         console.log('Next week clicked');
@@ -217,7 +267,7 @@ export class WeeklyCalendar {
 
     // Day card clicks
     const dayCards = this.container.querySelectorAll('.day-card');
-    dayCards.forEach(card => {
+    dayCards.forEach((card) => {
       card.addEventListener('click', (e) => {
         if (!e.target.classList.contains('add-event-btn')) {
           this.selectDay(card.dataset.date);
@@ -227,7 +277,7 @@ export class WeeklyCalendar {
 
     // Add event buttons
     const addBtns = this.container.querySelectorAll('.add-event-btn');
-    addBtns.forEach(btn => {
+    addBtns.forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.addEvent(btn.dataset.date);
@@ -326,7 +376,7 @@ export class WeeklyCalendar {
         id: Date.now(),
         title: title,
         start: dateStr,
-        priority: 'medium'
+        priority: 'medium',
       };
 
       const events = this.data.get('calendar_events', []);

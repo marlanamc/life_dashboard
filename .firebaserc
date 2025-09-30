@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "default": "dashboard-b68c3"
+  },
+  "targets": {
+    "dashboard-b68c3": {
+      "hosting": {
+        "adhddash": ["adhddash"]
+      }
+    }
+  }
+}

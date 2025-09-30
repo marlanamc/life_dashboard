@@ -1,0 +1,297 @@
+/* Brain Dump Component Styles */
+
+.simple-brain-dump {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.brain-dump-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.9);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.brain-dump-textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  resize: vertical;
+  min-height: 80px;
+  font-family: var(--font-family);
+}
+
+.brain-dump-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.done-btn {
+  align-self: flex-end;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.done-btn:hover {
+  background: #2563eb;
+  box-shadow: var(--shadow-md);
+}
+
+.priority-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+}
+
+.priority-section {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+  min-height: 200px;
+}
+
+.priority-section h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.priority-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-height: 150px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+  text-align: center;
+  min-height: 100px;
+  border: 2px dashed rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-lg);
+  margin-top: var(--spacing-sm);
+}
+
+.priority-section.drag-over .empty-state {
+  border-color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.brain-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-xs);
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+  max-width: 100%;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+}
+
+.brain-item.completed {
+  opacity: 0.7;
+}
+
+.brain-item:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.brain-item.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg);
+}
+
+.brain-item--project {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(147, 197, 253, 0.08));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.brain-item--project:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(147, 197, 253, 0.12));
+}
+
+.brain-checkbox {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.brain-checkbox input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.brain-checkbox-visual {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid rgba(31, 37, 89, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: white;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.brain-checkbox input:checked + .brain-checkbox-visual {
+  background: rgba(34, 197, 94, 0.9);
+  border-color: rgba(34, 197, 94, 1);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3);
+}
+
+.brain-checkbox input:checked + .brain-checkbox-visual::after {
+  content: '✓';
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.brain-item .item-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brain-item .item-text.completed {
+  text-decoration: line-through;
+  color: rgba(31, 37, 89, 0.6);
+}
+
+.brain-item .item-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.brain-item:hover .item-actions {
+  opacity: 1;
+}
+
+.add-to-capacity-btn {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-sm);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--color-primary);
+  transition: all 0.2s ease;
+}
+
+.add-to-capacity-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.delete-item {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  color: #ef4444;
+  transition: all 0.2s ease;
+}
+
+.delete-item:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.project-indicator {
+  font-size: 10px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.unsorted-section {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+}
+
+.unsorted-section h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.unsorted-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.help-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .priority-sections {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .brain-item {
+    font-size: var(--text-sm);
+  }
+
+  .priority-section {
+    padding: var(--spacing-md);
+  }
+}

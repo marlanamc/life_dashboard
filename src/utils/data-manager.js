@@ -1,3 +1,5 @@
+import { CloudSync } from './cloud-sync.js';
+
 /**
  * Reactive data manager with localStorage persistence
  * Provides centralized state management with automatic persistence
@@ -7,7 +9,17 @@ export class DataManager {
     this.prefix = 'lifeDashboard_v2_';
     this.data = new Map();
     this.subscribers = new Map();
+    this.cloudSync = null;
     this.loadFromStorage();
+    this.initializeCloudSync();
+  }
+
+  initializeCloudSync() {
+    try {
+      this.cloudSync = new CloudSync(this);
+    } catch (error) {
+      console.warn('[DataManager] Cloud sync disabled.', error);
+    }
   }
 
   /**
@@ -30,6 +42,50 @@ export class DataManager {
     this.data.set(key, value);
     this.saveToStorage(key, value);
     this.notifySubscribers(key, value, oldValue);
+    this.cloudSync?.queueUpdate(key, value);
+  }
+
+  /**
+   * Set a value coming from the cloud without re-syncing
+   * @param {string} key - The key to set
+   * @param {*} value - The value to store
+   */
+  setFromCloud(key, value) {
+    const oldValue = this.data.get(key);
+    this.data.set(key, value);
+    this.saveToStorage(key, value);
+    this.notifySubscribers(key, value, oldValue);
+  }
+
+  /**
+   * Provide a plain object snapshot of all data for cloud sync
+   * @returns {Record<string, *>}
+   */
+  exportDataForSync() {
+    const snapshot = {};
+    this.data.forEach((value, key) => {
+      if (key.startsWith('_')) {
+        return;
+      }
+      snapshot[key] = this.cloneValue(value);
+    });
+    return snapshot;
+  }
+
+  cloneValue(value) {
+    if (typeof structuredClone === 'function') {
+      try {
+        return structuredClone(value);
+      } catch (error) {
+        // Fallback to JSON cloning below
+      }
+    }
+
+    try {
+      return JSON.parse(JSON.stringify(value));
+    } catch (error) {
+      return value;
+    }
   }
 
   /**
@@ -111,6 +167,7 @@ export class DataManager {
     const keys = Array.from(this.data.keys());
     keys.forEach((key) => {
       localStorage.removeItem(this.prefix + key);
+      this.cloudSync?.queueUpdate(key, null);
     });
     this.data.clear();
   }

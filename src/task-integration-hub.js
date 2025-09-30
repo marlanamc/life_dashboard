@@ -33,7 +33,7 @@ export class TaskIntegrationHub {
       priority: sourceData.priority || 'medium',
       status: sourceData.completed ? 'completed' : 'active',
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     // Add source-specific data
@@ -42,7 +42,7 @@ export class TaskIntegrationHub {
         baseTask.brainSpaceData = {
           originalIndex: sourceData.originalIndex,
           priority: sourceData.priority,
-          createdAt: sourceData.createdAt || baseTask.createdAt
+          createdAt: sourceData.createdAt || baseTask.createdAt,
         };
         break;
 
@@ -50,7 +50,7 @@ export class TaskIntegrationHub {
         baseTask.projectLink = {
           projectId: sourceData.projectId,
           projectName: sourceData.projectName,
-          isActiveWork: false
+          isActiveWork: false,
         };
         break;
 
@@ -61,7 +61,7 @@ export class TaskIntegrationHub {
           calculatedCapacity: sourceData.calculatedCapacity,
           factors: sourceData.factors || [],
           fromCalculator: sourceData.fromCalculator || false,
-          fromQuickAdd: sourceData.fromQuickAdd || false
+          fromQuickAdd: sourceData.fromQuickAdd || false,
         };
         break;
     }
@@ -89,10 +89,11 @@ export class TaskIntegrationHub {
     // Convert brain space items to unified tasks
     const brainSpaceTasks = brainItems.map((item, index) => {
       // Check if this task already exists in unified tasks
-      const existingTask = unifiedTasks.find(task =>
-        task.source === 'brain_space' &&
-        task.brainSpaceData?.originalIndex === index &&
-        task.text === item.text
+      const existingTask = unifiedTasks.find(
+        (task) =>
+          task.source === 'brain_space' &&
+          task.brainSpaceData?.originalIndex === index &&
+          task.text === item.text
       );
 
       if (existingTask) {
@@ -103,28 +104,33 @@ export class TaskIntegrationHub {
         return existingTask;
       } else {
         // Create new unified task
-        return this.createUnifiedTask({
-          ...item,
-          originalIndex: index
-        }, 'brain_space');
+        return this.createUnifiedTask(
+          {
+            ...item,
+            originalIndex: index,
+          },
+          'brain_space'
+        );
       }
     });
 
     // Update unified tasks (remove old brain space tasks, add new ones)
-    const nonBrainSpaceTasks = unifiedTasks.filter(task => task.source !== 'brain_space');
+    const nonBrainSpaceTasks = unifiedTasks.filter((task) => task.source !== 'brain_space');
     const newUnifiedTasks = [...nonBrainSpaceTasks, ...brainSpaceTasks];
 
     this.data.set('unifiedTasks', newUnifiedTasks);
 
-    // Sync to capacity - only HIGH PRIORITY brain space tasks
+    // Sync to capacity - only HIGH PRIORITY brain space tasks that aren't already synced
     const brainSpaceCapacityTasks = brainSpaceTasks
-      .filter(task => task.status === 'active' && task.priority === 'high')
-      .map(task => this.convertToCapacityFormat(task));
+      .filter((task) =>
+        task.status === 'active' &&
+        task.priority === 'high' && // Only sync high priority items
+        !task.syncedToCapacity // Don't sync items already synced from projects
+      )
+      .map((task) => this.convertToCapacityFormat(task));
 
     // Keep existing capacity tasks that aren't from brain space
-    const nonBrainSpaceCapacityTasks = capacityTasks.filter(task =>
-      !task.fromBrainSpace
-    );
+    const nonBrainSpaceCapacityTasks = capacityTasks.filter((task) => !task.fromBrainSpace);
 
     // Combine and update capacity tasks
     const newCapacityTasks = [...nonBrainSpaceCapacityTasks, ...brainSpaceCapacityTasks];
@@ -148,7 +154,8 @@ export class TaskIntegrationHub {
       created: unifiedTask.createdAt,
       fromBrainSpace: true,
       unifiedTaskId: unifiedTask.id,
-      priority: unifiedTask.priority
+      priority: unifiedTask.priority,
+      syncedToCapacity: true, // Mark as synced to avoid re-syncing
     };
   }
 
@@ -157,11 +164,56 @@ export class TaskIntegrationHub {
    */
   estimateEnergyFromPriority(priority) {
     const energyMap = {
-      'high': 25,
-      'medium': 15,
-      'low': 8
+      high: 25,
+      medium: 15,
+      low: 8,
     };
     return energyMap[priority] || 15;
+  }
+
+  /**
+   * Pull brain dump item into capacity planning
+   */
+  pullBrainItemToCapacity(itemId, text, estimatedHours = 1) {
+    const unifiedTasks = this.data.get('unifiedTasks', []);
+    const capacityTasks = this.data.get('enoughTasks', []);
+
+    // Create unified task for brain item
+    const brainTask = this.createUnifiedTask(
+      {
+        text: text,
+        priority: 'medium', // Default to medium for brain items
+      },
+      'brain_space'
+    );
+
+    // Add to unified tasks
+    unifiedTasks.push(brainTask);
+    this.data.set('unifiedTasks', unifiedTasks);
+
+    // Add to capacity tasks
+    const capacityTask = {
+      id: brainTask.id,
+      text: text,
+      duration: estimatedHours * 60,
+      energyWeight: estimatedHours * 15, // 15% per hour estimate for brain items
+      calculatedCapacity: Math.min(100, estimatedHours * 15),
+      completed: false,
+      created: new Date().toISOString(),
+      fromBrainSpace: true,
+      brainItemId: itemId,
+      unifiedTaskId: brainTask.id,
+    };
+
+    capacityTasks.push(capacityTask);
+    this.data.set('enoughTasks', capacityTasks);
+
+    this.notifyListeners('brain_item_added_to_capacity', {
+      brainTask,
+      capacityTask,
+    });
+
+    return brainTask;
   }
 
   /**
@@ -170,13 +222,17 @@ export class TaskIntegrationHub {
   pullProjectTaskToDaily(projectId, projectName, taskDescription, estimatedHours = 2) {
     const unifiedTasks = this.data.get('unifiedTasks', []);
     const capacityTasks = this.data.get('enoughTasks', []);
+    const brainItems = this.data.get('simpleBrainDumpItems', []);
 
     // Create unified task for project work
-    const projectTask = this.createUnifiedTask({
-      text: taskDescription,
-      projectId: projectId,
-      projectName: projectName
-    }, 'projects');
+    const projectTask = this.createUnifiedTask(
+      {
+        text: taskDescription,
+        projectId: projectId,
+        projectName: projectName,
+      },
+      'projects'
+    );
 
     // Mark as active work
     projectTask.projectLink.isActiveWork = true;
@@ -185,34 +241,79 @@ export class TaskIntegrationHub {
       energyWeight: estimatedHours * 20, // 20% per hour estimate
       calculatedCapacity: Math.min(100, estimatedHours * 20),
       factors: ['project-work'],
-      scheduledFor: new Date().toISOString().split('T')[0]
+      scheduledFor: new Date().toISOString().split('T')[0],
     };
 
     // Add to unified tasks
     unifiedTasks.push(projectTask);
     this.data.set('unifiedTasks', unifiedTasks);
 
-    // Add to capacity tasks
-    const capacityTask = {
-      id: projectTask.id,
-      text: `[${projectName}] ${taskDescription}`,
-      duration: estimatedHours * 60,
-      energyWeight: estimatedHours * 20,
-      calculatedCapacity: Math.min(100, estimatedHours * 20),
+    // Check if project task already exists
+    const existingProjectTask = capacityTasks.find(
+      (task) => task.fromProject && task.projectId === projectId
+    );
+
+    if (existingProjectTask) {
+      // Update existing project task
+      existingProjectTask.text = `[${projectName}] ${taskDescription}`;
+      existingProjectTask.duration = estimatedHours * 60;
+      existingProjectTask.energyWeight = estimatedHours * 20;
+      existingProjectTask.calculatedCapacity = Math.min(100, estimatedHours * 20);
+      existingProjectTask.completed = false;
+      existingProjectTask.unifiedTaskId = projectTask.id;
+      console.log('Updated existing project task:', existingProjectTask);
+    } else {
+      // Add new project task
+      const capacityTask = {
+        id: projectTask.id,
+        text: `[${projectName}] ${taskDescription}`,
+        duration: estimatedHours * 60,
+        energyWeight: estimatedHours * 20,
+        calculatedCapacity: Math.min(100, estimatedHours * 20),
+        completed: false,
+        created: new Date().toISOString(),
+        fromProject: true,
+        projectId: projectId,
+        projectName: projectName,
+        unifiedTaskId: projectTask.id,
+      };
+
+      capacityTasks.push(capacityTask);
+      console.log('Added new project task:', capacityTask);
+    }
+
+    this.data.set('enoughTasks', capacityTasks);
+
+    // Also add to brain dump as a high-priority item
+    const brainItem = {
+      id: 'brain_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+      text: `Work on ${projectName}: ${taskDescription}`,
+      priority: 'high',
       completed: false,
-      created: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       fromProject: true,
       projectId: projectId,
       projectName: projectName,
-      unifiedTaskId: projectTask.id
+      syncedToCapacity: true, // Mark as already synced to avoid duplication
     };
 
-    capacityTasks.push(capacityTask);
-    this.data.set('enoughTasks', capacityTasks);
+    brainItems.push(brainItem);
+    console.log('Adding brain dump item:', brainItem);
+    console.log('Brain items before save:', brainItems);
+
+    this.data.set('simpleBrainDumpItems', brainItems);
+
+    // Also save to localStorage as backup
+    try {
+      localStorage.setItem('simpleBrainDumpItems', JSON.stringify(brainItems));
+      console.log('Brain dump items saved to localStorage:', brainItems.length);
+    } catch (error) {
+      console.warn('Failed to save brain dump items to localStorage:', error);
+    }
 
     this.notifyListeners('project_task_added', {
       projectTask,
-      capacityTask
+      brainItem,
     });
 
     return projectTask;
@@ -223,7 +324,7 @@ export class TaskIntegrationHub {
    */
   completeTask(unifiedTaskId) {
     const unifiedTasks = this.data.get('unifiedTasks', []);
-    const task = unifiedTasks.find(t => t.id === unifiedTaskId);
+    const task = unifiedTasks.find((t) => t.id === unifiedTaskId);
 
     if (!task) return;
 
@@ -235,7 +336,7 @@ export class TaskIntegrationHub {
 
     // Update in capacity
     const capacityTasks = this.data.get('enoughTasks', []);
-    const capacityTask = capacityTasks.find(t => t.unifiedTaskId === unifiedTaskId);
+    const capacityTask = capacityTasks.find((t) => t.unifiedTaskId === unifiedTaskId);
     if (capacityTask) {
       capacityTask.completed = true;
       this.data.set('enoughTasks', capacityTasks);
@@ -251,6 +352,20 @@ export class TaskIntegrationHub {
       }
     }
 
+    // Update in brain space if this is a project task that was added to brain dump
+    if (task.source === 'projects' && task.fromProject) {
+      const brainItems = this.data.get('simpleBrainDumpItems', []);
+      const brainItem = brainItems.find(item =>
+        item.fromProject &&
+        item.projectId === task.projectLink?.projectId &&
+        item.text.includes(task.text)
+      );
+      if (brainItem) {
+        brainItem.completed = true;
+        this.data.set('simpleBrainDumpItems', brainItems);
+      }
+    }
+
     this.notifyListeners('task_completed', task);
   }
 
@@ -260,7 +375,7 @@ export class TaskIntegrationHub {
   getTasksForComponent(component, filters = {}) {
     const unifiedTasks = this.data.get('unifiedTasks', []);
 
-    let filteredTasks = unifiedTasks.filter(task => {
+    const filteredTasks = unifiedTasks.filter((task) => {
       if (filters.status && task.status !== filters.status) return false;
       if (filters.source && task.source !== filters.source) return false;
       if (filters.activeProjectWork && !task.projectLink?.isActiveWork) return false;
@@ -271,17 +386,18 @@ export class TaskIntegrationHub {
     switch (component) {
       case 'capacity':
         return filteredTasks
-          .filter(task =>
-            (task.source === 'brain_space' && task.priority === 'high') ||
-            task.projectLink?.isActiveWork
+          .filter(
+            (task) =>
+              (task.source === 'brain_space' && task.priority === 'high') ||
+              task.projectLink?.isActiveWork
           )
-          .map(task => this.convertToCapacityFormat(task));
+          .map((task) => this.convertToCapacityFormat(task));
 
       case 'brain_space':
-        return filteredTasks.filter(task => task.source === 'brain_space');
+        return filteredTasks.filter((task) => task.source === 'brain_space');
 
       case 'projects_daily':
-        return filteredTasks.filter(task => task.projectLink?.isActiveWork);
+        return filteredTasks.filter((task) => task.projectLink?.isActiveWork);
 
       default:
         return filteredTasks;
@@ -308,7 +424,7 @@ export class TaskIntegrationHub {
    * Notify all listeners of integration events
    */
   notifyListeners(eventType, data) {
-    this.taskListeners.forEach(callback => {
+    this.taskListeners.forEach((callback) => {
       try {
         callback(eventType, data);
       } catch (error) {
@@ -326,15 +442,19 @@ export class TaskIntegrationHub {
     return {
       total: unifiedTasks.length,
       bySource: {
-        brain_space: unifiedTasks.filter(t => t.source === 'brain_space').length,
-        projects: unifiedTasks.filter(t => t.source === 'projects').length,
-        capacity: unifiedTasks.filter(t => t.source === 'capacity').length
+        brain_space: unifiedTasks.filter((t) => t.source === 'brain_space').length,
+        projects: unifiedTasks.filter((t) => t.source === 'projects').length,
+        capacity: unifiedTasks.filter((t) => t.source === 'capacity').length,
       },
       byStatus: {
-        active: unifiedTasks.filter(t => t.status === 'active').length,
-        completed: unifiedTasks.filter(t => t.status === 'completed').length
+        active: unifiedTasks.filter((t) => t.status === 'active').length,
+        completed: unifiedTasks.filter((t) => t.status === 'completed').length,
       },
-      activeProjectWork: unifiedTasks.filter(t => t.projectLink?.isActiveWork).length
+      byPriority: {
+        high: unifiedTasks.filter((t) => t.priority === 'high').length,
+        low: unifiedTasks.filter((t) => t.priority === 'low').length,
+      },
+      activeProjectWork: unifiedTasks.filter((t) => t.projectLink?.isActiveWork).length,
     };
   }
 }

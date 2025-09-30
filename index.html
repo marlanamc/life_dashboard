@@ -14,13 +14,24 @@
     />
   </head>
   <body>
+    <div id="auth-overlay-root"></div>
     <!-- Settings Menu -->
     <div class="settings-menu" id="settings-menu">
-      <button class="settings-toggle" id="settings-toggle" aria-haspopup="true" aria-expanded="false">
+      <button
+        class="settings-toggle"
+        id="settings-toggle"
+        aria-haspopup="true"
+        aria-expanded="false"
+      >
         <span class="settings-icon">⚙️</span>
       </button>
 
-      <div class="settings-dropdown" id="settings-dropdown" role="dialog" aria-label="Dashboard control center">
+      <div
+        class="settings-dropdown"
+        id="settings-dropdown"
+        role="dialog"
+        aria-label="Dashboard control center"
+      >
         <div class="settings-header">
           <div class="settings-title">
             <h4>Control Center</h4>
@@ -29,72 +40,86 @@
           <button class="settings-close" id="settings-close" aria-label="Close settings">✕</button>
         </div>
 
-        <div class="settings-section">
-          <span class="section-label">Modes</span>
-          <div class="settings-group">
-            <button class="settings-item" id="emergency-toggle">
-              <span class="item-icon">🚨</span>
-              <div class="item-content">
-                <span class="item-text">Emergency Mode</span>
-                <span class="item-description">Hide everything except the essentials</span>
+        <div class="settings-content">
+          <div class="settings-section">
+            <span class="section-label">Integrations</span>
+            <div class="settings-group">
+              <div id="ticktick-integration-container">
+                <!-- TickTick integration will be rendered here -->
               </div>
-              <span class="item-state" data-state="emergency">Off</span>
-            </button>
-
-            <button class="settings-item" id="focus-toggle">
-              <span class="item-icon">🎯</span>
-              <div class="item-content">
-                <span class="item-text">Focus Mode</span>
-                <span class="item-description">Minimize distractions for deep work</span>
-              </div>
-              <span class="item-state" data-state="focus">Off</span>
-            </button>
+            </div>
           </div>
-        </div>
 
-        <div class="settings-section">
-          <span class="section-label">Theme</span>
-          <div class="settings-group">
-            <button class="settings-item" id="auto-theme-toggle">
-              <span class="item-icon">🪄</span>
-              <div class="item-content">
-                <span class="item-text">Auto Theme</span>
-                <span class="item-description">Follow the natural day → evening rhythm</span>
+          <div class="settings-section">
+            <span class="section-label">Dashboard Features</span>
+            <div class="settings-group">
+              <button class="settings-item" id="stimming-corner-toggle">
+                <span class="item-icon">🎵</span>
+                <div class="item-content">
+                  <span class="item-text">Stimming Corner</span>
+                  <span class="item-description">Interactive elements for sensory regulation</span>
+                </div>
+              </button>
+              <button class="settings-item" id="floating-notes-toggle">
+                <span class="item-icon">💭</span>
+                <div class="item-content">
+                  <span class="item-text">Floating Notes</span>
+                  <span class="item-description">Random encouraging reminders</span>
+                </div>
+              </button>
+              <button class="settings-item" id="celebrations-toggle">
+                <span class="item-icon">🎉</span>
+                <div class="item-content">
+                  <span class="item-text">Celebrations</span>
+                  <span class="item-description">Visual feedback for accomplishments</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <span class="section-label">Themes & Appearance</span>
+            <div class="settings-group">
+              <button class="settings-item" id="auto-theme-toggle">
+                <span class="item-icon">🌓</span>
+                <div class="item-content">
+                  <span class="item-text">Auto Theme</span>
+                  <span class="item-description">Automatically switch between light and dark</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <span class="section-label">Account</span>
+            <div class="settings-group">
+              <div class="settings-user-info" id="settings-user-info" style="display: none">
+                <div class="user-info-content">
+                  <span class="user-greeting" id="user-greeting">Hi 👋</span>
+                  <span class="user-email" id="user-email"></span>
+                </div>
               </div>
-              <span class="item-state" data-state="auto-theme">On</span>
-            </button>
-
-            <button class="settings-item" id="day-mode-toggle">
-              <span class="item-icon">☀️</span>
-              <div class="item-content">
-                <span class="item-text">Daylight Boost</span>
-                <span class="item-description">Brighten the interface when energy dips</span>
-              </div>
-              <span class="item-state" data-state="day-mode">Off</span>
-            </button>
-
-            <div class="settings-subheading">Manual theme</div>
-            <div class="settings-pill-group" role="group" aria-label="Choose dashboard theme">
-              <button class="theme-pill" data-theme-target="day">☀️ Day</button>
-              <button class="theme-pill" data-theme-target="evening">🌙 Evening</button>
+              <button class="settings-item" id="logout-button">
+                <span class="item-icon">🚪</span>
+                <div class="item-content">
+                  <span class="item-text">Log out</span>
+                  <span class="item-description">Sign out and return to local mode</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="settings-section">
-          <span class="section-label">Integrations</span>
-          <div id="ticktick-integration-container"></div>
-        </div>
-
         <div class="settings-footer">
-          <p class="settings-hint">Pro tip: Press ⌘/Ctrl + E anywhere to jump into Emergency Mode.</p>
+          <p class="settings-hint">
+            💡 Press ⌘/Ctrl + E anywhere to jump into Emergency Mode
+          </p>
         </div>
       </div>
     </div>
 
     <!-- ADHD-Optimized Dashboard -->
     <div class="dashboard-container">
-
       <!-- Top Section: Welcome & Time Context -->
       <div class="welcome-section">
         <div class="card card--primary welcome-card">
@@ -122,12 +147,10 @@
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- Main Dashboard Grid -->
       <div class="main-dashboard">
-
         <!-- Energy Section -->
         <div class="energy-column">
           <div id="enough-capacity-container"></div>
@@ -163,14 +186,13 @@
             <div class="card__content" id="projects-table-container"></div>
           </div>
         </div>
-
       </div>
     </div>
 
     <!-- ADHD Support Widgets (Floating) -->
     <div class="adhd-widgets">
       <!-- Stimming Corner -->
-      <div class="stimming-corner" id="stimming-corner" style="display: none;">
+      <div class="stimming-corner" id="stimming-corner" style="display: none">
         <div class="fidget-widgets">
           <div class="stress-ball" id="stress-ball">●</div>
           <div class="spinner" id="spinner">⚡</div>
