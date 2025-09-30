@@ -25,9 +25,7 @@ export class TickTickIntegration {
     this.render();
     console.log('🎨 TickTick UI rendered');
 
-    // Expose service for other components
-    this.data.set('ticktick_service', this.ticktickService);
-    console.log('🔗 TickTick service exposed to other components');
+    console.log('🔗 TickTick service ready for other components');
   }
 
   render() {

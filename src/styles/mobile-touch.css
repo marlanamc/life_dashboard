@@ -1,0 +1,319 @@
+/**
+ * Mobile Touch Optimization Styles
+ * Ensures all interactive elements meet Apple's 44px minimum touch target guidelines
+ * Only applies to mobile devices (max-width: 480px)
+ */
+
+/* Only apply mobile touch optimizations to actual mobile devices */
+@media (max-width: 480px) and (pointer: coarse) {
+
+  /* Touch Target Base Rules */
+  .mobile-layout button,
+  .mobile-layout input[type="button"],
+  .mobile-layout input[type="submit"],
+  .mobile-layout input[type="reset"],
+  .mobile-layout .btn,
+  .mobile-layout .button,
+  .mobile-layout [role="button"],
+  .mobile-layout .clickable {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+    font-size: 16px;
+    line-height: 1.2;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    touch-action: manipulation; /* Prevents double-tap zoom */
+  }
+
+  /* Input Fields */
+  .mobile-layout input,
+  .mobile-layout textarea,
+  .mobile-layout select {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    border-radius: 8px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.2s ease;
+  }
+
+  .mobile-layout input:focus,
+  .mobile-layout textarea:focus,
+  .mobile-layout select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--time-card-ring);
+    outline: none;
+  }
+
+  /* Priority Buttons */
+  .mobile-layout .priority-btn,
+  .mobile-layout .priority-button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 12px;
+    margin: 4px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-layout .priority-btn:active,
+  .mobile-layout .priority-button:active {
+    transform: scale(0.95);
+  }
+
+  /* Theme Pills */
+  .mobile-layout .theme-pill,
+  .mobile-layout .pill {
+    min-height: 44px;
+    padding: 8px 16px;
+    border-radius: 22px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+  }
+
+  /* Calendar Navigation */
+  .mobile-layout .calendar-nav button,
+  .mobile-layout .nav-button {
+    min-height: 44px;
+    min-width: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin: 4px;
+  }
+
+  /* Settings and Action Buttons */
+  .mobile-layout .settings-btn,
+  .mobile-layout .action-btn {
+    min-height: 44px;
+    min-width: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    padding: 8px;
+  }
+
+  /* Checkbox and Radio Improvements */
+  .mobile-layout input[type="checkbox"],
+  .mobile-layout input[type="radio"] {
+    min-height: 24px;
+    min-width: 24px;
+    margin: 10px; /* Adds touch area around the checkbox */
+    transform: scale(1.5); /* Makes the actual checkbox bigger */
+  }
+
+  /* Checkbox Labels for Better Touch Area */
+  .mobile-layout label {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+  }
+
+  /* Task Items and Clickable List Items */
+  .mobile-layout .task-item,
+  .mobile-layout .list-item,
+  .mobile-layout .item {
+    min-height: 60px; /* Larger for better UX */
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-layout .task-item:hover,
+  .mobile-layout .list-item:hover,
+  .mobile-layout .item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-layout .task-item:active,
+  .mobile-layout .list-item:active,
+  .mobile-layout .item:active {
+    transform: scale(0.98);
+  }
+
+  /* Brain Dump Specific Improvements */
+  .mobile-layout .brain-checkbox {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .mobile-layout .brain-item {
+    min-height: 60px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .mobile-layout .brain-item:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Capacity Planning Touch Improvements */
+  .mobile-layout .capacity-task {
+    min-height: 60px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-layout .capacity-controls button {
+    min-height: 44px;
+    min-width: 44px;
+    margin: 4px;
+    border-radius: 8px;
+  }
+
+  /* Calendar Touch Improvements */
+  .mobile-layout .calendar-day {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-layout .calendar-event {
+    min-height: 44px;
+    padding: 8px 12px;
+    margin: 2px 0;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  /* Settings Menu Touch Improvements */
+  .mobile-layout .settings-item {
+    min-height: 60px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+  }
+
+  /* TickTick Integration Button */
+  .mobile-layout .ticktick-connect-btn {
+    min-height: 60px !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Form Controls */
+  .mobile-layout .form-group {
+    margin-bottom: 20px;
+  }
+
+  .mobile-layout .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  /* Focus Visible for Accessibility */
+  .mobile-layout *:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Project Table Improvements */
+  .mobile-layout .projects-table button,
+  .mobile-layout table button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 12px;
+    margin: 2px;
+  }
+
+}
+
+/* Dark theme mobile support */
+@media (max-width: 480px) and (pointer: coarse) and (prefers-color-scheme: dark) {
+  .mobile-layout input,
+  .mobile-layout textarea,
+  .mobile-layout select {
+    background: rgba(0, 0, 0, 0.7);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+
+  .mobile-layout .task-item,
+  .mobile-layout .list-item,
+  .mobile-layout .item {
+    background: rgba(0, 0, 0, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-layout .task-item:hover,
+  .mobile-layout .list-item:hover,
+  .mobile-layout .item:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* High contrast mode support */
+@media (max-width: 480px) and (pointer: coarse) and (prefers-contrast: high) {
+  .mobile-layout button,
+  .mobile-layout input,
+  .mobile-layout .clickable {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (max-width: 480px) and (pointer: coarse) and (prefers-reduced-motion: reduce) {
+  .mobile-layout * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

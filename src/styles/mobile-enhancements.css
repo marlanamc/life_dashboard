@@ -1,0 +1,318 @@
+/**
+ * Mobile-Specific Enhancements
+ * Additional mobile improvements for better UX
+ */
+
+/* Mobile-only styles for enhanced experience */
+@media (max-width: 768px) {
+
+  /* Hide desktop settings button on mobile */
+  .settings-menu,
+  .settings-toggle,
+  #settings-toggle {
+    display: none !important;
+  }
+
+  /* Mobile header improvements */
+  .mobile-header {
+    backdrop-filter: blur(20px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Auth overlay positioning for mobile */
+  .mobile-layout #auth-overlay-root {
+    position: fixed;
+    bottom: 80px;
+    top: auto;
+    left: 0;
+    right: 0;
+    z-index: 999;
+  }
+
+  /* Better mobile card spacing */
+  .mobile-layout .card {
+    margin-bottom: 16px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Mobile-optimized dashboard grid */
+  .mobile-layout .main-dashboard,
+  .mobile-layout .dashboard-container {
+    padding: 12px;
+    gap: 12px;
+    grid-template-columns: 1fr;
+    padding-bottom: 120px; /* Extra space for mobile nav */
+  }
+
+  /* Improved mobile section headers */
+  .mobile-layout .card__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .mobile-layout .card__title {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  /* Mobile-friendly content padding */
+  .mobile-layout .card__content {
+    padding: 20px;
+  }
+
+  /* Better mobile form styling */
+  .mobile-layout input,
+  .mobile-layout textarea {
+    border-radius: 12px;
+    border: 2px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.95);
+    font-size: 16px;
+    padding: 16px;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-layout input:focus,
+  .mobile-layout textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--time-card-ring-soft);
+    transform: translateY(-1px);
+  }
+
+  /* Mobile button improvements */
+  .mobile-layout button {
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-height: 48px;
+    padding: 12px 20px;
+  }
+
+  .mobile-layout button:active {
+    transform: scale(0.98);
+  }
+
+  /* Mobile priority buttons */
+  .mobile-layout .priority-high {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  .mobile-layout .priority-medium {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+
+  .mobile-layout .priority-low {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Mobile task list improvements */
+  .mobile-layout .brain-item,
+  .mobile-layout .task-item {
+    padding: 16px 20px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mobile-layout .brain-item:active,
+  .mobile-layout .task-item:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Mobile checkbox styling */
+  .mobile-layout .brain-checkbox-visual {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .mobile-layout .brain-checkbox-visual.completed {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+  }
+
+  /* Mobile settings improvements */
+  .mobile-layout .settings-item {
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 8px;
+    min-height: 60px;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-layout .settings-item:active {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 1);
+  }
+
+  /* Mobile calendar improvements */
+  .mobile-layout .calendar-day {
+    min-height: 48px;
+    min-width: 48px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .mobile-layout .calendar-event {
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 4px 0;
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  /* Mobile project table improvements */
+  .mobile-layout .projects-table {
+    overflow-x: auto;
+    border-radius: 16px;
+  }
+
+  .mobile-layout .projects-table button {
+    min-height: 40px;
+    min-width: 40px;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  /* Mobile notification improvements */
+  .mobile-layout .notification {
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin: 16px;
+    font-size: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Prevent zoom on inputs */
+  .mobile-layout input,
+  .mobile-layout textarea,
+  .mobile-layout select {
+    font-size: 16px !important; /* Prevents iOS zoom */
+  }
+
+  /* Better mobile scrolling */
+  .mobile-layout {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Mobile-specific animations */
+  .mobile-layout .card,
+  .mobile-layout .brain-item,
+  .mobile-layout .task-item {
+    animation: mobileSlideIn 0.3s ease;
+  }
+
+  @keyframes mobileSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Mobile safe areas */
+  .mobile-layout .dashboard {
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(120px, calc(80px + env(safe-area-inset-bottom)));
+  }
+
+  .mobile-nav {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  /* Dark mode mobile improvements */
+  @media (prefers-color-scheme: dark) {
+    .mobile-layout .card {
+      background: rgba(0, 0, 0, 0.8);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .mobile-layout .brain-item,
+    .mobile-layout .task-item {
+      background: rgba(0, 0, 0, 0.7);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .mobile-layout input,
+    .mobile-layout textarea {
+      background: rgba(0, 0, 0, 0.8);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+  }
+
+}
+
+/* High DPI mobile screens */
+@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+  .mobile-layout .card,
+  .mobile-layout .brain-item,
+  .mobile-layout .task-item {
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Portrait orientation optimizations */
+@media (max-width: 768px) and (orientation: portrait) {
+  .mobile-layout .dashboard {
+    gap: 16px;
+  }
+
+  .mobile-layout .card {
+    margin-bottom: 20px;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-width: 768px) and (orientation: landscape) and (max-height: 500px) {
+  .mobile-layout .dashboard {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .mobile-layout .card {
+    margin-bottom: 8px;
+  }
+
+  .mobile-nav {
+    padding: 4px 0;
+  }
+
+  .mobile-fab {
+    width: 48px;
+    height: 48px;
+    right: 12px;
+    top: -24px;
+  }
+}

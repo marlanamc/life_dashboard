@@ -7,6 +7,7 @@ import { TickTickIntegration } from './services/ticktick-integration.js';
 import { WeeklyCalendar } from './components/weekly-calendar.js';
 import { TaskIntegrationHub } from './task-integration-hub.js';
 import { AuthManager } from './services/auth-manager.js';
+import { MobileLayoutManager } from './components/mobile-layout-manager.js';
 
 /**
  * Main App Controller
@@ -25,6 +26,7 @@ export class LifeDashboard {
     this.authManager = null;
     this.lastAuthUserId = null;
     this.hasShownSignedOutMessage = false;
+    this.mobileLayoutManager = null;
     this.init();
   }
 
@@ -60,6 +62,9 @@ export class LifeDashboard {
 
     // Make globally available for component interactions
     window.lifeDashboard = this;
+
+    // Initialize mobile layout manager
+    this.initializeMobileLayout();
 
     console.log('Life Dashboard v5 initialized with Wireframe Priority Layout');
   }
@@ -1371,6 +1376,114 @@ export class LifeDashboard {
   // Utility method for other modules to access app instance
   static getInstance() {
     return window.app;
+  }
+
+  /**
+   * Initialize mobile layout manager for responsive mobile experience
+   */
+  initializeMobileLayout() {
+    // Get the dashboard element (use correct selector for HTML structure)
+    const dashboardElement = document.querySelector('.main-dashboard');
+    if (!dashboardElement) {
+      console.warn('Dashboard element not found for mobile layout initialization');
+      return;
+    }
+
+    // Initialize mobile layout manager
+    this.mobileLayoutManager = new MobileLayoutManager(dashboardElement, {
+      dataManager: this.data,
+      modules: this.modules,
+      taskHub: this.taskHub
+    });
+
+    // Set up mobile-specific event listeners
+    this.setupMobileEventListeners();
+
+    console.log('Mobile layout manager initialized');
+  }
+
+  /**
+   * Set up mobile-specific event listeners
+   */
+  setupMobileEventListeners() {
+    // Listen for mobile tab changes to update component states
+    document.addEventListener('mobile:tab-change', (e) => {
+      const { tabId, section } = e.detail;
+      this.handleMobileTabChange(tabId, section);
+    });
+
+    // Listen for quick add events from mobile navigation
+    document.addEventListener('brain:quick-add', () => {
+      this.modules.simpleBrainDump?.focusInput?.();
+    });
+
+    document.addEventListener('capacity:quick-add', () => {
+      this.modules.enoughCapacity?.showQuickAdd?.();
+    });
+
+    document.addEventListener('projects:quick-add', () => {
+      this.modules.projectsTable?.addNewProject?.();
+    });
+
+    document.addEventListener('calendar:quick-add', () => {
+      this.modules.weeklyCalendar?.addQuickEvent?.();
+    });
+
+    // Update mobile tab badges based on data changes
+    this.data.subscribe('simpleBrainDumpItems', (items) => {
+      const activeCount = items?.filter(item => !item.completed).length || 0;
+      this.mobileLayoutManager?.updateTabBadge('brain', activeCount);
+    });
+
+    this.data.subscribe('enoughTasks', (tasks) => {
+      const activeCount = tasks?.filter(task => !task.completed).length || 0;
+      this.mobileLayoutManager?.updateTabBadge('capacity', activeCount);
+    });
+
+    this.data.subscribe('projects', (projects) => {
+      const activeCount = projects?.filter(project => project.status === 'active').length || 0;
+      this.mobileLayoutManager?.updateTabBadge('projects', activeCount);
+    });
+  }
+
+  /**
+   * Handle mobile tab change events
+   */
+  handleMobileTabChange(tabId, section) {
+    // Perform any tab-specific initialization or updates
+    switch (tabId) {
+      case 'brain':
+        // Refresh brain dump if needed
+        this.modules.simpleBrainDump?.refresh?.();
+        break;
+      case 'capacity':
+        // Refresh capacity planning if needed
+        this.modules.enoughCapacity?.refresh?.();
+        break;
+      case 'projects':
+        // Refresh projects table if needed
+        this.modules.projectsTable?.refresh?.();
+        break;
+      case 'calendar':
+        // Refresh calendar if needed
+        this.modules.weeklyCalendar?.refresh?.();
+        break;
+    }
+
+    // Analytics or tracking could go here
+    console.log(`Mobile tab switched to: ${tabId}`);
+  }
+
+  /**
+   * Get current mobile view information
+   */
+  getMobileViewInfo() {
+    if (!this.mobileLayoutManager) return null;
+
+    return {
+      isMobile: this.mobileLayoutManager.isMobileLayout(),
+      currentView: this.mobileLayoutManager.getCurrentView()
+    };
   }
 }
 

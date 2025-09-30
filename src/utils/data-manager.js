@@ -1,4 +1,4 @@
-import { CloudSync } from './cloud-sync.js';
+import { CloudSync } from '../services/cloud-sync.js';
 
 /**
  * Reactive data manager with localStorage persistence

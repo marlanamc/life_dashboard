@@ -6,6 +6,7 @@ export class SimpleBrainDump {
     this.draggedItem = null;
     this.items = [];
     this.unsubscribe = null;
+    this.idPrefix = 'brain-item-';
 
     if (this.container) {
       this.init();
@@ -153,6 +154,39 @@ export class SimpleBrainDump {
 
     this.renderItemsFromData(this.items);
     this.saveItems();
+  }
+
+  addItem(text, priority = 'medium') {
+    const cleanedText = (text ?? '').trim();
+    if (!cleanedText) {
+      return null;
+    }
+
+    const normalizedPriority = ['high', 'medium', 'low'].includes(priority)
+      ? priority
+      : 'medium';
+
+    const newItem = {
+      id: this.generateItemId(),
+      text: cleanedText,
+      priority: normalizedPriority,
+      completed: false,
+      createdAt: Date.now()
+    };
+
+    const existingItems = this.getStoredItems();
+    const updatedItems = [newItem, ...existingItems];
+
+    this.items = updatedItems;
+    this.saveItems();
+    this.renderItemsFromData(updatedItems);
+    this.showNotification('🧠 Captured in Brain Space', 'success');
+
+    return newItem;
+  }
+
+  generateItemId() {
+    return `${this.idPrefix}${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
   }
 
   createItemElement(id, text, priority, itemData = {}) {
@@ -334,7 +368,7 @@ export class SimpleBrainDump {
       itemElement.remove();
     }
 
-    this.items = this.items.filter((item) => item.id != itemId);
+    this.items = this.items.filter((item) => String(item.id) !== String(itemId));
     this.saveItems();
     this.updateEmptyStates();
 
@@ -342,14 +376,14 @@ export class SimpleBrainDump {
   }
 
   toggleItemCompletion(id) {
-    const items = this.data.get('simpleBrainDumpItems', []);
-    const itemIndex = items.findIndex(item => item.id === id);
-    
-    if (itemIndex !== -1) {
-      items[itemIndex].completed = !items[itemIndex].completed;
-      this.data.set('simpleBrainDumpItems', items);
-      this.renderItemsFromData();
-    }
+    const items = this.getStoredItems();
+    const updatedItems = items.map((item) =>
+      String(item.id) === String(id) ? { ...item, completed: !item.completed } : item
+    );
+
+    this.items = updatedItems;
+    this.saveItems();
+    this.renderItemsFromData(updatedItems);
   }
 
   addItemToCapacity(itemId, text, priority) {
@@ -400,7 +434,7 @@ export class SimpleBrainDump {
 
     try {
       // First try to get from the data manager
-      const existingItems = this.data.get('simpleBrainDumpItems', []);
+      const existingItems = this.getStoredItems();
       const itemsArray = Array.isArray(existingItems) ? existingItems : [];
       console.log('Brain dump: Data manager returned', itemsArray.length, 'items');
       this.renderItemsFromData(itemsArray);
@@ -438,9 +472,31 @@ export class SimpleBrainDump {
     }
   }
 
-  renderItemsFromData(items) {
-    console.log('Brain dump rendering items:', items.length, items);
-    this.items = items.map((item) => ({ ...item }));
+  getStoredItems() {
+    try {
+      const items = this.data?.get('simpleBrainDumpItems', []);
+      if (Array.isArray(items)) {
+        return items;
+      }
+    } catch (error) {
+      console.warn('Brain dump: failed to read from data manager, falling back to localStorage', error);
+    }
+
+    try {
+      const stored = localStorage.getItem('simpleBrainDumpItems');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn('Brain dump: failed to parse localStorage items', error);
+    }
+
+    return [];
+  }
+
+  renderItemsFromData(items = null) {
+    const sourceItems = Array.isArray(items) ? items : this.getStoredItems();
+
+    console.log('Brain dump rendering items:', sourceItems.length, sourceItems);
+    this.items = sourceItems.map((item) => ({ ...item }));
 
     const containers = this.container.querySelectorAll('.priority-items, .unsorted-items');
     containers.forEach((container) => {

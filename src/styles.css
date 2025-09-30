@@ -9,6 +9,18 @@
 /* Component-Specific Styles */
 @import './styles/brain-dump.css';
 
+/* Legacy comprehensive styling (desktop baseline) */
+@import './styles-backup.css';
+
+/* Mobile Touch Optimization */
+@import './styles/mobile-touch.css';
+
+/* Mobile Experience Enhancements */
+@import './styles/mobile-enhancements.css';
+
+/* Mobile Pages - Single Screen App Experience */
+@import './styles/mobile-pages.css';
+
 /* Note: Other component stylesheets will be imported here as they are created */
 
 /* Legacy styles (to be gradually moved to component files) */
@@ -32,7 +44,7 @@
 
 /* Theme Support */
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-background);
   color: var(--color-text-primary);
   transition: all 0.3s ease;
 }
