@@ -6,6 +6,11 @@
 /* Mobile page container and transitions */
 @media (max-width: 768px) {
 
+  /* Hide desktop welcome section on mobile - works even without .mobile-layout class */
+  .welcome-section {
+    display: none !important;
+  }
+
   .mobile-layout .welcome-section {
     display: none !important;
   }
@@ -1585,13 +1590,24 @@
   opacity: 1;
 }
 
-/* Mobile page container positioning */
+/* Mobile page container positioning - ALWAYS apply on mobile screens */
 @media (max-width: 768px) {
+  /* Hide desktop dashboard on mobile screens */
+  .main-dashboard {
+    display: none !important;
+  }
+
   .mobile-layout .main-dashboard {
     display: none !important;
   }
 
+  /* Show mobile page container on mobile screens */
   .mobile-page-container {
+    display: block !important;
+  }
+
+  /* Ensure mobile navigation is visible */
+  #mobile-navigation {
     display: block !important;
   }
 }
