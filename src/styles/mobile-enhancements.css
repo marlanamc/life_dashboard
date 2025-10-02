@@ -22,11 +22,21 @@
   /* Auth overlay positioning for mobile */
   .mobile-layout #auth-overlay-root {
     position: fixed;
-    bottom: 80px;
-    top: auto;
-    left: 0;
-    right: 0;
-    z-index: 999;
+    inset: 0;
+    z-index: 9999;
+  }
+
+  /* Ensure auth overlay hides properly on mobile */
+  .mobile-layout .auth-overlay--hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    display: none !important;
+  }
+
+  /* Make sure authenticated state shows dashboard */
+  .mobile-layout .auth-overlay:not(.auth-overlay--hidden) {
+    display: flex;
   }
 
   /* Better mobile card spacing */
