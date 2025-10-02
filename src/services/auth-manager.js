@@ -1,7 +1,9 @@
 import {
+  browserLocalPersistence,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  setPersistence,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -101,8 +103,13 @@ export class AuthManager {
 
       this.auth = services.auth;
 
+      // Set persistence to LOCAL so users stay signed in
+      await setPersistence(this.auth, browserLocalPersistence);
+      console.log('[AuthManager] Firebase persistence set to LOCAL');
+
       onAuthStateChanged(this.auth, (user) => {
         this.user = user;
+        console.log('[AuthManager] Auth state changed:', user ? `User: ${user.email}` : 'Not signed in');
         this.updateUI();
         if (typeof this.onAuthChange === 'function') {
           this.onAuthChange(user);

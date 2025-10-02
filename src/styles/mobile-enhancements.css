@@ -39,6 +39,30 @@
     display: flex;
   }
 
+  /* Mobile-optimized auth card */
+  .mobile-layout .auth-card {
+    width: min(360px, calc(100vw - 32px));
+    padding: 28px 24px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .mobile-layout .auth-card__header h3 {
+    font-size: 22px;
+  }
+
+  .mobile-layout .auth-field input {
+    font-size: 16px !important; /* Prevents iOS zoom */
+    min-height: 48px;
+    padding: 14px 16px;
+  }
+
+  .mobile-layout .auth-submit {
+    min-height: 52px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
   /* Better mobile card spacing */
   .mobile-layout .card {
     margin-bottom: 16px;
@@ -259,6 +283,125 @@
 
   .mobile-nav {
     padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  /* Mobile Theme Picker Modal */
+  .mobile-theme-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: flex-end;
+    animation: modalFadeIn 0.2s ease;
+  }
+
+  .mobile-theme-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .mobile-theme-dialog {
+    position: relative;
+    width: 100%;
+    background: var(--color-surface, white);
+    border-radius: 24px 24px 0 0;
+    padding: 24px;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
+    animation: slideUpModal 0.3s ease;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .mobile-theme-dialog h3 {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-align: center;
+  }
+
+  .mobile-theme-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .mobile-theme-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.95);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 80px;
+  }
+
+  .mobile-theme-option:active {
+    transform: scale(0.98);
+  }
+
+  .mobile-theme-option.active {
+    border-color: var(--color-primary);
+    background: var(--time-card-ring-soft);
+  }
+
+  .theme-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  .mobile-theme-option > span:nth-child(2) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .theme-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .theme-desc {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .mobile-theme-cancel {
+    width: 100%;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 52px;
+  }
+
+  .mobile-theme-cancel:active {
+    transform: scale(0.98);
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  @keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUpModal {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
 
   /* Dark mode mobile improvements */

@@ -348,6 +348,9 @@ export class MobileLayoutManager {
         <div class="mobile-header-subtitle" id="mobile-header-subtitle">Brain Space</div>
       </div>
       <div class="mobile-header-actions">
+        <button class="mobile-header-btn" id="mobile-theme-btn" title="Change Theme">
+          🎨
+        </button>
         <button class="mobile-header-btn" id="mobile-search-btn" title="Search">
           🔍
         </button>
@@ -369,6 +372,10 @@ export class MobileLayoutManager {
     }
 
     // Add header action listeners
+    document.getElementById('mobile-theme-btn')?.addEventListener('click', () => {
+      this.showMobileThemePicker();
+    });
+
     document.getElementById('mobile-search-btn')?.addEventListener('click', () => {
       this.showMobileSearch();
     });
@@ -984,6 +991,68 @@ export class MobileLayoutManager {
   showMobileSettings() {
     // TODO: Implement mobile settings panel
     console.log('Mobile settings requested');
+  }
+
+  showMobileThemePicker() {
+    // Create mobile theme picker modal
+    const modal = document.createElement('div');
+    modal.className = 'mobile-theme-modal';
+    modal.innerHTML = `
+      <div class="mobile-theme-backdrop"></div>
+      <div class="mobile-theme-dialog">
+        <h3>Choose Theme</h3>
+        <div class="mobile-theme-options">
+          <button class="mobile-theme-option" data-theme="day">
+            <span class="theme-icon">🌤️</span>
+            <span class="theme-name">Day</span>
+            <span class="theme-desc">Bright & focused</span>
+          </button>
+          <button class="mobile-theme-option" data-theme="afternoon">
+            <span class="theme-icon">🌅</span>
+            <span class="theme-name">Afternoon</span>
+            <span class="theme-desc">Warm & creative</span>
+          </button>
+          <button class="mobile-theme-option" data-theme="dusk">
+            <span class="theme-icon">🌆</span>
+            <span class="theme-name">Dusk</span>
+            <span class="theme-desc">Calm & winding down</span>
+          </button>
+          <button class="mobile-theme-option" data-theme="evening">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-name">Evening</span>
+            <span class="theme-desc">Dark & cozy</span>
+          </button>
+        </div>
+        <button class="mobile-theme-cancel">Cancel</button>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Highlight current theme
+    const currentTheme = document.body.className.match(/theme-(\w+)/)?.[1] || 'day';
+    modal.querySelector(`[data-theme="${currentTheme}"]`)?.classList.add('active');
+
+    // Handle theme selection
+    modal.querySelectorAll('.mobile-theme-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const theme = btn.dataset.theme;
+        // Remove old theme classes
+        document.body.className = document.body.className.replace(/theme-\w+/g, '');
+        // Add new theme
+        document.body.classList.add(`theme-${theme}`);
+        // Save to localStorage
+        localStorage.setItem('selectedTheme', theme);
+        // Close modal
+        modal.remove();
+        this.showNotification(`Theme changed to ${theme}`);
+      });
+    });
+
+    // Handle cancel and backdrop
+    const closeModal = () => modal.remove();
+    modal.querySelector('.mobile-theme-cancel').addEventListener('click', closeModal);
+    modal.querySelector('.mobile-theme-backdrop').addEventListener('click', closeModal);
   }
 
   teardownMobileLayout() {
