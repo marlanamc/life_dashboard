@@ -55,5 +55,8 @@ coverage/
 
 # Debug files
 debug-*.js
-test-*.js
-test-*.html
+firebase-debug.log
+
+# Dev folder (keep local only)
+dev/
+!dev/playwright.config.js
