@@ -57,3 +57,29 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================================
+   CRITICAL OVERRIDES - Must be last to override all other styles
+   ============================================================================ */
+
+/* Header Toggle Button States */
+.welcome-section:not(.collapsed) .toggle-icon {
+  transform: rotate(0deg) !important;
+}
+
+.welcome-section.collapsed .toggle-icon {
+  transform: rotate(-90deg) !important;
+}
+
+/* Collapsed Dashboard Layout */
+.welcome-section.collapsed ~ .main-dashboard {
+  height: calc(100vh - 120px) !important;
+  align-items: stretch !important;
+  grid-auto-rows: 1fr !important;
+}
+
+.welcome-section.collapsed ~ .main-dashboard .energy-column,
+.welcome-section.collapsed ~ .main-dashboard .brain-column,
+.welcome-section.collapsed ~ .main-dashboard .projects-column {
+  height: 100% !important;
+}
