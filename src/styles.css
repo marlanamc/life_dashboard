@@ -1,68 +1,37 @@
-/* Life Dashboard - Organized Styles */
+/* ============================================================================
+   LIFE DASHBOARD - MAIN STYLESHEET
+   Clean, organized import structure for better maintainability
+   ============================================================================ */
 
-/* Global Styles and Variables */
+/* ----------------------------------------------------------------------------
+   DESKTOP STYLES
+   Base styles, components, and desktop-specific features
+   ---------------------------------------------------------------------------- */
+
+/* Foundation: CSS variables, design tokens, themes */
 @import './styles/global.css';
 
-/* Shared Component Styles */
+/* Shared components: buttons, cards, modals, forms */
 @import './styles/components.css';
 
-/* Component-Specific Styles */
+/* Feature-specific styles */
 @import './styles/brain-dump.css';
 
-/* Legacy comprehensive styling (desktop baseline) */
+/* Main desktop styles (TODO: gradually migrate to smaller modules) */
 @import './styles-backup.css';
 
-/* Mobile Touch Optimization */
+/* ----------------------------------------------------------------------------
+   MOBILE STYLES
+   Mobile-first responsive design and touch optimizations
+   ---------------------------------------------------------------------------- */
+
 @import './styles/mobile-touch.css';
-
-/* Mobile Experience Enhancements */
 @import './styles/mobile-enhancements.css';
-
-/* Mobile Pages - Single Screen App Experience */
 @import './styles/mobile-pages.css';
 
-/* Note: Other component stylesheets will be imported here as they are created */
-
-/* Legacy styles (to be gradually moved to component files) */
-
-/* Dashboard Layout */
-.dashboard {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: var(--spacing-lg);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--spacing-lg);
-  min-height: 100vh;
-}
-
-.dashboard-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-/* Theme Support */
-body {
-  background: var(--color-background);
-  color: var(--color-text-primary);
-  transition: all 0.3s ease;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-    padding: var(--spacing-md);
-    gap: var(--spacing-md);
-  }
-}
-
-@media (max-width: 480px) {
-  .dashboard {
-    padding: var(--spacing-sm);
-  }
-}
+/* ----------------------------------------------------------------------------
+   ACCESSIBILITY & PROGRESSIVE ENHANCEMENT
+   ---------------------------------------------------------------------------- */
 
 /* Focus Management */
 *:focus {

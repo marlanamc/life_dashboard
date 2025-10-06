@@ -121,7 +121,7 @@
     <!-- ADHD-Optimized Dashboard -->
     <div class="dashboard-container">
       <!-- Top Section: Welcome & Time Context -->
-      <div class="welcome-section">
+      <div class="welcome-section" id="welcome-section">
         <div class="card card--primary welcome-card">
           <div class="welcome-content">
             <div class="welcome-header">
@@ -129,20 +129,20 @@
               <div class="welcome-text" id="greeting-container">
                 <!-- Dynamic greeting will be inserted here -->
               </div>
+              <button class="header-toggle" id="header-toggle" title="Collapse/Expand header">
+                <span class="toggle-icon">▼</span>
+              </button>
             </div>
 
             <div class="welcome-panels">
-              <div class="welcome-tile welcome-panel--time">
-                <div class="time-context">
-                  <div class="current-time" id="current-time"></div>
-                  <div class="current-date" id="current-date"></div>
-                </div>
-              </div>
-              <div class="welcome-tile welcome-calendar welcome-calendar--month">
-                <div id="monthly-calendar-compact"></div>
+              <div class="welcome-tile welcome-panel--focus">
+                <div id="focus-timer-container"></div>
               </div>
               <div class="welcome-tile welcome-calendar welcome-calendar--week">
                 <div id="weekly-calendar-container"></div>
+              </div>
+              <div class="welcome-tile welcome-calendar welcome-calendar--month">
+                <div id="monthly-calendar-compact"></div>
               </div>
             </div>
           </div>

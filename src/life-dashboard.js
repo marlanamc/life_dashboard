@@ -5,9 +5,10 @@ import { EnoughCapacity } from './components/enough-capacity.js';
 import { ProjectsTable } from './components/projects-table.js';
 import { TickTickIntegration } from './services/ticktick-integration.js';
 import { WeeklyCalendar } from './components/weekly-calendar.js';
-import { TaskIntegrationHub } from './task-integration-hub.js';
+import { TaskIntegrationHub } from './services/task-integration-hub.js';
 import { AuthManager } from './services/auth-manager.js';
 import { MobileLayoutManager } from './components/mobile-layout-manager.js';
+import { FocusTimer } from './components/focus-timer.js';
 
 /**
  * Main App Controller
@@ -130,6 +131,12 @@ export class LifeDashboard {
   }
 
   initializeSecondaryComponents() {
+    // Initialize Focus Timer
+    this.modules.focusTimer = new FocusTimer(
+      document.getElementById('focus-timer-container'),
+      this.data
+    );
+
     // Initialize Enough Capacity in secondary position
     this.modules.enoughCapacity = new EnoughCapacity(
       document.getElementById('enough-capacity-container'),
@@ -180,6 +187,9 @@ export class LifeDashboard {
 
     // Render compact calendars in welcome card
     this.renderCompactCalendars();
+
+    // Initialize collapsible header
+    this.initializeCollapsibleHeader();
   }
 
   updateGreeting() {
@@ -258,6 +268,31 @@ export class LifeDashboard {
     this.lastCompactCalendarDate = today.toDateString();
   }
 
+  initializeCollapsibleHeader() {
+    const headerToggle = document.getElementById('header-toggle');
+    const welcomeSection = document.getElementById('welcome-section');
+    
+    if (headerToggle && welcomeSection) {
+      // Load saved state
+      const isCollapsed = this.data.get('headerCollapsed', false);
+      if (isCollapsed) {
+        welcomeSection.classList.add('collapsed');
+      }
+
+      headerToggle.addEventListener('click', () => {
+        const isCollapsed = welcomeSection.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+          welcomeSection.classList.remove('collapsed');
+          this.data.set('headerCollapsed', false);
+        } else {
+          welcomeSection.classList.add('collapsed');
+          this.data.set('headerCollapsed', true);
+        }
+      });
+    }
+  }
+
   renderCompactMonth(today) {
     const container = document.getElementById('monthly-calendar-compact');
     if (!container) {
@@ -330,11 +365,15 @@ export class LifeDashboard {
     // Get focus sessions for this week
     const focusSessions = this.getFocusSessionsForWeek(startOfWeek);
 
+    const now = new Date();
+    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const currentDate = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
     container.innerHTML = `
       <div class="compact-week">
         <div class="compact-week__header">
-          <span class="compact-week__title">This Week & Focus Sessions</span>
-          <span class="compact-week__range">${rangeStart} - ${rangeEnd}</span>
+          <span class="compact-week__title">${currentTime}</span>
+          <span class="compact-week__range">${currentDate}</span>
           <button class="btn btn--micro focus-planner-btn" title="Plan Focus Sessions">🔥 Plan</button>
         </div>
         <div class="compact-week__days">
