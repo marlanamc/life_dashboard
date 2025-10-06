@@ -88,7 +88,9 @@
 .welcome-section.collapsed ~ .main-dashboard .card,
 .welcome-section.collapsed ~ .main-dashboard .brain-space,
 .welcome-section.collapsed ~ .main-dashboard .projects-hub,
-.welcome-section.collapsed ~ .main-dashboard #enough-capacity-wrapper {
+.welcome-section.collapsed ~ .main-dashboard #enough-capacity-wrapper,
+.welcome-section.collapsed ~ .main-dashboard #enough-capacity-container,
+.welcome-section.collapsed ~ .main-dashboard .card--nature {
   max-height: none !important;
   height: 100% !important;
   display: flex !important;
