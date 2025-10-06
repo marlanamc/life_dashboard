@@ -83,3 +83,14 @@
 .welcome-section.collapsed ~ .main-dashboard .projects-column {
   height: 100% !important;
 }
+
+/* Make cards inside columns stretch to fill */
+.welcome-section.collapsed ~ .main-dashboard .card,
+.welcome-section.collapsed ~ .main-dashboard .brain-space,
+.welcome-section.collapsed ~ .main-dashboard .projects-hub,
+.welcome-section.collapsed ~ .main-dashboard #enough-capacity-wrapper {
+  max-height: none !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
